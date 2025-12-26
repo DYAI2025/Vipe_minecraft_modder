@@ -377,23 +377,43 @@ function initWebSpeechTTS() {
   return false;
 }
 
-function populateVoiceSelect() {
+// OpenAI TTS voices
+const OPENAI_VOICES = [
+  { id: 'nova', name: 'Nova', desc: 'Freundlich & warm' },
+  { id: 'alloy', name: 'Alloy', desc: 'Neutral & klar' },
+  { id: 'echo', name: 'Echo', desc: 'Männlich & ruhig' },
+  { id: 'fable', name: 'Fable', desc: 'Erzähler-Stimme' },
+  { id: 'onyx', name: 'Onyx', desc: 'Tief & kräftig' },
+  { id: 'shimmer', name: 'Shimmer', desc: 'Hell & freundlich' },
+];
+
+function populateVoiceSelect(provider = 'webspeech') {
   const voiceSelect = document.getElementById('tts-voice');
   if (!voiceSelect) return;
 
   voiceSelect.innerHTML = '';
 
-  // Filter German voices first, then others
-  const germanVoices = webSpeechVoices.filter(v => v.lang.startsWith('de'));
-  const otherVoices = webSpeechVoices.filter(v => !v.lang.startsWith('de'));
+  if (provider === 'openai') {
+    // OpenAI voices
+    OPENAI_VOICES.forEach(voice => {
+      const option = document.createElement('option');
+      option.value = voice.id;
+      option.textContent = `🤖 ${voice.name} - ${voice.desc}`;
+      voiceSelect.appendChild(option);
+    });
+  } else {
+    // WebSpeech voices
+    const germanVoices = webSpeechVoices.filter(v => v.lang.startsWith('de'));
+    const otherVoices = webSpeechVoices.filter(v => !v.lang.startsWith('de'));
 
-  [...germanVoices, ...otherVoices].forEach((voice, i) => {
-    const option = document.createElement('option');
-    option.value = i;
-    option.textContent = `${voice.name} (${voice.lang})`;
-    if (voice.lang.startsWith('de')) option.textContent = '🇩🇪 ' + option.textContent;
-    voiceSelect.appendChild(option);
-  });
+    [...germanVoices, ...otherVoices].forEach((voice, i) => {
+      const option = document.createElement('option');
+      option.value = i;
+      option.textContent = `${voice.name} (${voice.lang})`;
+      if (voice.lang.startsWith('de')) option.textContent = '🇩🇪 ' + option.textContent;
+      voiceSelect.appendChild(option);
+    });
+  }
 }
 
 function speakWithWebSpeech(text) {
@@ -464,13 +484,57 @@ function setupSettings() {
   });
 
   // Test TTS
-  testTtsBtn?.addEventListener('click', () => {
+  testTtsBtn?.addEventListener('click', async () => {
     const text = 'Ssssalut! Ich bin Crafty, dein Minecraft Helfer!';
-    if (ttsProvider?.value === 'webspeech') {
-      speakWithWebSpeech(text);
-    } else {
-      // Use IPC TTS
-      window.kidmod?.tts?.speak({ requestId: 'test-' + Date.now(), text });
+    const provider = ttsProvider?.value;
+    const voiceSelect = document.getElementById('tts-voice');
+    const voice = voiceSelect?.value;
+
+    testTtsBtn.disabled = true;
+    testTtsBtn.textContent = '🔊 Spiele...';
+
+    try {
+      if (provider === 'webspeech') {
+        speakWithWebSpeech(text);
+        // Re-enable after estimated speech duration
+        setTimeout(() => {
+          testTtsBtn.disabled = false;
+          testTtsBtn.textContent = '🔊 Testen';
+        }, 3000);
+      } else {
+        // OpenAI TTS via IPC
+        const apiKey = document.getElementById('tts-api-key')?.value;
+        if (!apiKey) {
+          alert('Bitte gib zuerst deinen OpenAI API-Key ein!');
+          testTtsBtn.disabled = false;
+          testTtsBtn.textContent = '🔊 Testen';
+          return;
+        }
+
+        // Save settings first to apply API key
+        await saveSettingsFromUI();
+
+        const result = await window.kidmod?.tts?.speak({
+          requestId: 'test-' + Date.now(),
+          text,
+          settingsOverride: {
+            provider: 'openai',
+            voice: voice || 'nova',
+          }
+        });
+
+        if (!result?.ok) {
+          alert('TTS Fehler: ' + (result?.error?.message || 'Unbekannter Fehler'));
+        }
+
+        testTtsBtn.disabled = false;
+        testTtsBtn.textContent = '🔊 Testen';
+      }
+    } catch (e) {
+      console.error('TTS test error:', e);
+      alert('TTS Test fehlgeschlagen: ' + e.message);
+      testTtsBtn.disabled = false;
+      testTtsBtn.textContent = '🔊 Testen';
     }
   });
 
@@ -481,13 +545,18 @@ function setupSettings() {
     setCraftyMessage('Einstellungen gespeichert! 💾');
   });
 
-  // Provider change - show/hide API key field
+  // Provider change - show/hide API key field and update voices
   ttsProvider?.addEventListener('change', () => {
-    useWebSpeechTTS = ttsProvider.value === 'webspeech';
+    const provider = ttsProvider.value;
+    useWebSpeechTTS = provider === 'webspeech';
+
     const apiKeyRow = document.getElementById('tts-api-key-row');
     if (apiKeyRow) {
       apiKeyRow.style.display = useWebSpeechTTS ? 'none' : 'flex';
     }
+
+    // Update voice options for the selected provider
+    populateVoiceSelect(provider);
   });
 }
 
@@ -504,8 +573,9 @@ async function loadSettingsToUI() {
 
     const ttsProvider = document.getElementById('tts-provider');
     const ttsApiKeyRow = document.getElementById('tts-api-key-row');
+    const provider = settings.tts?.providerConfig?.provider || 'webspeech';
 
-    if (settings.tts?.providerConfig?.provider === 'openai') {
+    if (provider === 'openai') {
       ttsProvider.value = 'openai';
       useWebSpeechTTS = false;
       if (ttsApiKeyRow) ttsApiKeyRow.style.display = 'flex';
@@ -515,8 +585,15 @@ async function loadSettingsToUI() {
       if (ttsApiKeyRow) ttsApiKeyRow.style.display = 'none';
     }
 
-    // Note: API keys are stored securely and not loaded back to UI for security
-    // Placeholder shows if key is set
+    // Update voice options for the selected provider
+    populateVoiceSelect(provider);
+
+    // Select the current voice if set
+    const voiceSelect = document.getElementById('tts-voice');
+    const currentVoice = settings.tts?.providerConfig?.voice;
+    if (voiceSelect && currentVoice) {
+      voiceSelect.value = currentVoice;
+    }
   } catch (e) {
     console.error('Failed to load settings:', e);
   }
@@ -531,6 +608,8 @@ async function saveSettingsFromUI() {
 
     const ttsApiKey = document.getElementById('tts-api-key')?.value;
     const llmApiKey = document.getElementById('llm-api-key')?.value;
+    const voiceSelect = document.getElementById('tts-voice');
+    const selectedVoice = voiceSelect?.value;
 
     const patch = {
       llm: {
@@ -544,6 +623,7 @@ async function saveSettingsFromUI() {
         providerConfig: {
           provider: ttsProviderValue,
           speed: parseFloat(document.getElementById('tts-speed').value),
+          voice: selectedVoice,
         }
       }
     };
