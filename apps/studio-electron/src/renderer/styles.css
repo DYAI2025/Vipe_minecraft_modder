@@ -1,0 +1,498 @@
+/* KidModStudio - Kinderfreundliches Minecraft-Theme */
+
+:root {
+  /* Minecraft Farbpalette */
+  --grass-dark: #2d5a27;
+  --grass-light: #5d8a4a;
+  --grass-hover: #7ab366;
+  --dirt-brown: #8b5a2b;
+  --wood-brown: #a0522d;
+  --stone-gray: #7f7f7f;
+  --stone-dark: #4a4a4a;
+  --sky-blue: #87ceeb;
+  --gold: #ffcc00;
+  --white: #ffffff;
+  --black: #1a1a1a;
+  --error-red: #ff6b6b;
+  --success-green: #4ade80;
+
+  /* Schriften */
+  --font-main: 'Segoe UI', system-ui, sans-serif;
+  --font-minecraft: 'Courier New', monospace; /* Fallback für Minecraft-Feeling */
+
+  /* Abstände */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+
+  /* Schatten */
+  --shadow-block: 4px 4px 0px rgba(0,0,0,0.3);
+  --shadow-hover: 6px 6px 0px rgba(0,0,0,0.4);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-main);
+  background: linear-gradient(180deg, var(--sky-blue) 0%, var(--grass-dark) 100%);
+  min-height: 100vh;
+  color: var(--white);
+  overflow-x: hidden;
+}
+
+/* Minecraft-Style Button */
+.mc-button {
+  background: linear-gradient(180deg, var(--stone-gray) 0%, var(--stone-dark) 100%);
+  border: 3px solid var(--black);
+  border-top-color: #a0a0a0;
+  border-left-color: #a0a0a0;
+  padding: var(--spacing-sm) var(--spacing-md);
+  color: var(--white);
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: var(--shadow-block);
+  transition: all 0.1s ease;
+  text-shadow: 2px 2px 0px var(--black);
+}
+
+.mc-button:hover {
+  background: linear-gradient(180deg, #909090 0%, #606060 100%);
+  box-shadow: var(--shadow-hover);
+  transform: translate(-1px, -1px);
+}
+
+.mc-button:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px rgba(0,0,0,0.3);
+}
+
+.mc-button.primary {
+  background: linear-gradient(180deg, var(--grass-light) 0%, var(--grass-dark) 100%);
+  border-top-color: var(--grass-hover);
+  border-left-color: var(--grass-hover);
+}
+
+.mc-button.gold {
+  background: linear-gradient(180deg, var(--gold) 0%, #cc9900 100%);
+  border-top-color: #ffdd44;
+  border-left-color: #ffdd44;
+  color: var(--black);
+  text-shadow: none;
+}
+
+/* ==================== LAYOUT ==================== */
+
+/* Header */
+.header {
+  background: linear-gradient(180deg, var(--dirt-brown) 0%, var(--wood-brown) 100%);
+  border-bottom: 4px solid var(--black);
+  padding: var(--spacing-md);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 4px 0 rgba(0,0,0,0.3);
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.header-title .logo {
+  font-size: 32px;
+}
+
+.header-title h1 {
+  font-size: 28px;
+  text-shadow: 3px 3px 0px var(--black);
+  color: var(--gold);
+}
+
+.header-subtitle {
+  font-size: 14px;
+  color: var(--white);
+  opacity: 0.9;
+}
+
+.settings-btn {
+  font-size: 20px;
+  padding: var(--spacing-sm);
+}
+
+/* Main Container - 3 Spalten */
+.main-container {
+  display: grid;
+  grid-template-columns: 250px 1fr 280px;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  min-height: calc(100vh - 180px);
+}
+
+/* Panels */
+.inventory-panel,
+.helper-panel {
+  background: rgba(0, 0, 0, 0.5);
+  border: 3px solid var(--dirt-brown);
+  border-radius: 8px;
+  padding: var(--spacing-md);
+}
+
+.inventory-panel h2,
+.helper-panel h2,
+.workbench h2 {
+  font-size: 18px;
+  margin-bottom: var(--spacing-md);
+  text-shadow: 2px 2px 0px var(--black);
+}
+
+/* Inventar Tabs */
+.inventory-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-md);
+}
+
+.inv-tab {
+  background: var(--stone-dark);
+  border: 2px solid var(--stone-gray);
+  padding: var(--spacing-sm);
+  color: var(--white);
+  cursor: pointer;
+  text-align: left;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.inv-tab:hover,
+.inv-tab.active {
+  background: var(--grass-dark);
+  border-color: var(--grass-light);
+}
+
+/* Inventar Grid */
+.inventory-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--spacing-xs);
+}
+
+.inv-item {
+  aspect-ratio: 1;
+  background: var(--stone-dark);
+  border: 2px solid var(--stone-gray);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  cursor: grab;
+  transition: all 0.2s;
+}
+
+.inv-item:hover {
+  background: var(--grass-dark);
+  border-color: var(--gold);
+  transform: scale(1.1);
+}
+
+/* Werkbank */
+.workbench {
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><rect fill="%238B4513" width="32" height="32"/><rect fill="%23A0522D" x="0" y="0" width="16" height="16"/><rect fill="%23A0522D" x="16" y="16" width="16" height="16"/></svg>');
+  border: 4px solid var(--black);
+  border-radius: 8px;
+  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.crafting-area {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+  margin: var(--spacing-lg) 0;
+}
+
+.crafting-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 64px);
+  gap: 4px;
+  background: var(--stone-dark);
+  padding: var(--spacing-sm);
+  border: 3px solid var(--black);
+}
+
+.craft-slot {
+  width: 64px;
+  height: 64px;
+  background: var(--stone-gray);
+  border: 2px dashed rgba(255,255,255,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  position: relative;
+}
+
+.craft-slot.center-slot {
+  background: var(--grass-dark);
+  border: 2px solid var(--gold);
+}
+
+.slot-hint {
+  font-size: 10px;
+  color: rgba(255,255,255,0.5);
+  text-align: center;
+}
+
+.craft-slot.filled {
+  border-style: solid;
+  border-color: var(--grass-light);
+  animation: slot-glow 1s ease-in-out infinite alternate;
+}
+
+@keyframes slot-glow {
+  from { box-shadow: 0 0 5px var(--grass-light); }
+  to { box-shadow: 0 0 15px var(--gold); }
+}
+
+.crafting-arrow {
+  font-size: 48px;
+  animation: arrow-pulse 1s ease-in-out infinite;
+}
+
+@keyframes arrow-pulse {
+  0%, 100% { transform: translateX(0); opacity: 0.7; }
+  50% { transform: translateX(5px); opacity: 1; }
+}
+
+.result-slot {
+  width: 80px;
+  height: 80px;
+  background: var(--gold);
+  border: 3px solid var(--black);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+}
+
+.action-buttons {
+  display: flex;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-lg);
+}
+
+/* Footer */
+.voice-footer {
+  background: rgba(0, 0, 0, 0.7);
+  border-top: 4px solid var(--dirt-brown);
+  padding: var(--spacing-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-lg);
+}
+
+.voice-btn {
+  font-size: 18px;
+  padding: var(--spacing-md) var(--spacing-xl);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.voice-btn.recording {
+  animation: recording-pulse 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes recording-pulse {
+  from { box-shadow: 0 0 10px var(--error-red); }
+  to { box-shadow: 0 0 25px var(--error-red); }
+}
+
+.voice-feedback {
+  flex: 1;
+  max-width: 400px;
+  background: var(--stone-dark);
+  border: 2px solid var(--stone-gray);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: 4px;
+  min-height: 40px;
+}
+
+.voice-transcript {
+  font-size: 14px;
+  color: var(--gold);
+}
+
+/* ==================== CRAFTY HELPER ==================== */
+
+.helper-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.crafty-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+/* Crafty Creeper */
+.crafty {
+  width: 80px;
+  height: 100px;
+  background: var(--grass-light);
+  border: 3px solid var(--grass-dark);
+  border-radius: 8px;
+  position: relative;
+  animation: crafty-bounce 2s ease-in-out infinite;
+}
+
+@keyframes crafty-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+.crafty-face {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.crafty-eyes {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+}
+
+.eye {
+  width: 12px;
+  height: 16px;
+  background: var(--black);
+  animation: blink 4s ease-in-out infinite;
+}
+
+@keyframes blink {
+  0%, 95%, 100% { transform: scaleY(1); }
+  97% { transform: scaleY(0.1); }
+}
+
+.crafty-mouth {
+  font-size: 24px;
+  text-align: center;
+  margin-top: 5px;
+  color: var(--black);
+}
+
+.crafty-hat {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 24px;
+}
+
+/* Crafty States */
+.crafty.thinking {
+  animation: crafty-think 0.5s ease-in-out infinite;
+}
+
+@keyframes crafty-think {
+  0%, 100% { transform: rotate(-5deg); }
+  50% { transform: rotate(5deg); }
+}
+
+.crafty.happy {
+  animation: crafty-dance 0.3s ease-in-out infinite;
+}
+
+@keyframes crafty-dance {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  25% { transform: translateY(-10px) rotate(-5deg); }
+  75% { transform: translateY(-10px) rotate(5deg); }
+}
+
+/* Speech Bubble */
+.speech-bubble {
+  background: var(--white);
+  color: var(--black);
+  padding: var(--spacing-md);
+  border-radius: 12px;
+  border: 3px solid var(--grass-dark);
+  position: relative;
+  max-width: 220px;
+  font-size: 14px;
+  line-height: 1.4;
+  box-shadow: var(--shadow-block);
+}
+
+.speech-bubble::before {
+  content: '';
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 10px solid transparent;
+  border-bottom-color: var(--grass-dark);
+}
+
+.speech-bubble::after {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 8px solid transparent;
+  border-bottom-color: var(--white);
+}
+
+#crafty-message {
+  margin: 0;
+}
+
+/* Status Container */
+.status-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  margin-top: auto;
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  background: var(--stone-dark);
+  padding: var(--spacing-sm);
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.status-item.success {
+  border-left: 3px solid var(--success-green);
+}
+
+.status-item.error {
+  border-left: 3px solid var(--error-red);
+}
+
+.status-item.loading {
+  border-left: 3px solid var(--gold);
+}
+
+.status-icon {
+  font-size: 16px;
+}

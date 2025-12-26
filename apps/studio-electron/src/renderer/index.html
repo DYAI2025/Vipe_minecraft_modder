@@ -3,146 +3,110 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'">
-  <title>KidModStudio</title>
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      padding: 20px;
-      background: #1a1a2e;
-      color: #eee;
-    }
-    h1 { color: #4ecca3; }
-    .status {
-      padding: 10px;
-      margin: 10px 0;
-      border-radius: 4px;
-      background: #16213e;
-    }
-    .status.ok { border-left: 4px solid #4ecca3; }
-    .status.error { border-left: 4px solid #e94560; }
-    button {
-      background: #4ecca3;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 4px;
-      cursor: pointer;
-      margin: 5px;
-      color: #1a1a2e;
-      font-weight: bold;
-    }
-    button:hover { background: #3db890; }
-    #log {
-      background: #0f0f1a;
-      padding: 10px;
-      border-radius: 4px;
-      font-family: monospace;
-      font-size: 12px;
-      max-height: 300px;
-      overflow-y: auto;
-    }
-  </style>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'">
+  <title>KidModStudio - Baue deinen eigenen Minecraft Mod!</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <h1>KidModStudio</h1>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-title">
+      <span class="logo">⛏️</span>
+      <h1>KidModStudio</h1>
+    </div>
+    <p class="header-subtitle">Baue deinen eigenen Minecraft Mod!</p>
+    <button class="mc-button settings-btn" title="Einstellungen">⚙️</button>
+  </header>
 
-  <div class="status" id="llm-status">LLM: Checking...</div>
-  <div class="status" id="stt-status">STT: Ready</div>
+  <!-- Main Content -->
+  <main class="main-container">
+    <!-- Left: Inventar -->
+    <aside class="inventory-panel">
+      <h2>📦 Inventar</h2>
+      <div class="inventory-tabs">
+        <button class="inv-tab active" data-tab="blocks">🧱 Blöcke</button>
+        <button class="inv-tab" data-tab="items">⚔️ Items</button>
+        <button class="inv-tab" data-tab="mobs">🐷 Kreaturen</button>
+      </div>
+      <div class="inventory-grid" id="inventory-grid">
+        <!-- Items werden per JS geladen -->
+      </div>
+    </aside>
 
-  <div>
-    <button id="btn-health">Check LLM Health</button>
-    <button id="btn-complete">Test JSON Completion</button>
-    <button id="btn-stt-start">Start STT Stream</button>
-    <button id="btn-stt-stop">Stop STT Stream</button>
-  </div>
+    <!-- Center: Werkbank -->
+    <section class="workbench">
+      <h2>🔨 Werkbank</h2>
+      <div class="crafting-area">
+        <div class="crafting-grid">
+          <div class="craft-slot" data-slot="0"></div>
+          <div class="craft-slot" data-slot="1"></div>
+          <div class="craft-slot" data-slot="2"></div>
+          <div class="craft-slot" data-slot="3"></div>
+          <div class="craft-slot center-slot" data-slot="4">
+            <span class="slot-hint">Hauptblock</span>
+          </div>
+          <div class="craft-slot" data-slot="5"></div>
+          <div class="craft-slot" data-slot="6"></div>
+          <div class="craft-slot" data-slot="7"></div>
+          <div class="craft-slot" data-slot="8"></div>
+        </div>
+        <div class="crafting-arrow">➡️</div>
+        <div class="crafting-result">
+          <div class="result-slot" id="result-slot">
+            <span class="slot-hint">Dein Mod</span>
+          </div>
+        </div>
+      </div>
+      <div class="action-buttons">
+        <button class="mc-button primary" id="btn-create">⚒️ Mod bauen!</button>
+        <button class="mc-button" id="btn-clear">🗑️ Leeren</button>
+      </div>
+    </section>
 
-  <h3>Log</h3>
-  <div id="log"></div>
+    <!-- Right: Crafty Helper -->
+    <aside class="helper-panel">
+      <div class="crafty-container">
+        <div class="crafty" id="crafty">
+          <div class="crafty-face">
+            <div class="crafty-eyes">
+              <div class="eye left"></div>
+              <div class="eye right"></div>
+            </div>
+            <div class="crafty-mouth">◡</div>
+          </div>
+          <div class="crafty-hat">🎓</div>
+        </div>
+        <div class="speech-bubble" id="speech-bubble">
+          <p id="crafty-message">Hallo! Ich bin Crafty! 🎮 Lass uns zusammen einen Mod bauen!</p>
+        </div>
+      </div>
 
-  <script>
-    const log = (msg) => {
-      const el = document.getElementById('log');
-      const time = new Date().toLocaleTimeString();
-      el.innerHTML = `[${time}] ${msg}<br>` + el.innerHTML;
-    };
+      <!-- Status Anzeigen -->
+      <div class="status-container">
+        <div class="status-item" id="llm-status">
+          <span class="status-icon">🧠</span>
+          <span class="status-text">Bereit zum Denken!</span>
+        </div>
+        <div class="status-item" id="stt-status">
+          <span class="status-icon">🎤</span>
+          <span class="status-text">Bereit zum Zuhören!</span>
+        </div>
+      </div>
+    </aside>
+  </main>
 
-    const updateStatus = (id, ok, msg) => {
-      const el = document.getElementById(id);
-      el.className = ok ? 'status ok' : 'status error';
-      el.textContent = msg;
-    };
+  <!-- Footer: Spracheingabe -->
+  <footer class="voice-footer">
+    <button class="mc-button gold voice-btn" id="btn-voice">
+      <span class="mic-icon">🎤</span>
+      <span class="voice-text">Sprich mit mir!</span>
+    </button>
+    <div class="voice-feedback" id="voice-feedback">
+      <div class="sound-wave"></div>
+      <p class="voice-transcript" id="voice-transcript"></p>
+    </div>
+  </footer>
 
-    // Health Check
-    document.getElementById('btn-health').onclick = async () => {
-      log('Checking LLM health...');
-      const res = await window.kidmod.llm.healthCheck({});
-      updateStatus('llm-status', res.ok, `LLM: ${res.ok ? 'Connected' : 'Failed'} - ${res.message || res.model}`);
-      log(`Health check: ${JSON.stringify(res)}`);
-    };
-
-    // JSON Completion
-    document.getElementById('btn-complete').onclick = async () => {
-      log('Testing JSON completion...');
-      const res = await window.kidmod.llm.completeJSON({
-        requestId: 'test-' + Date.now(),
-        jsonSchema: {
-          type: 'object',
-          properties: {
-            action: { type: 'string' },
-            blockId: { type: 'string' }
-          },
-          required: ['action', 'blockId']
-        }
-      });
-      log(`Completion result: ${JSON.stringify(res)}`);
-    };
-
-    // STT Stream
-    let currentStreamId = null;
-
-    document.getElementById('btn-stt-start').onclick = async () => {
-      currentStreamId = 'stream-' + Date.now();
-      log(`Starting STT stream: ${currentStreamId}`);
-
-      // Listen for events
-      window.kidmod.stt.onStreamEvent((ev) => {
-        log(`STT Event: ${ev.type} - ${ev.text || ev.state || ev.message}`);
-        if (ev.type === 'final') {
-          updateStatus('stt-status', true, `STT: "${ev.text}"`);
-        }
-      });
-
-      const res = await window.kidmod.stt.streamStart({ streamId: currentStreamId });
-      log(`Stream started: ${JSON.stringify(res)}`);
-      updateStatus('stt-status', res.ok, `STT: ${res.ok ? 'Streaming...' : res.message}`);
-
-      // Simulate sending some chunks
-      if (res.ok) {
-        for (let i = 0; i < 12; i++) {
-          setTimeout(() => {
-            const chunk = new Uint8Array(640); // 20ms @ 16kHz
-            window.kidmod.stt.streamPush({ streamId: currentStreamId, chunkIndex: i, pcm16le: chunk });
-            log(`Sent chunk ${i}`);
-          }, i * 100);
-        }
-      }
-    };
-
-    document.getElementById('btn-stt-stop').onclick = async () => {
-      if (!currentStreamId) {
-        log('No active stream');
-        return;
-      }
-      log(`Stopping STT stream: ${currentStreamId}`);
-      const res = await window.kidmod.stt.streamStop({ streamId: currentStreamId });
-      log(`Stream stopped: ${JSON.stringify(res)}`);
-      currentStreamId = null;
-    };
-
-    // Initial health check
-    window.kidmod.llm.healthCheck({}).then(res => {
-      updateStatus('llm-status', res.ok, `LLM: ${res.ok ? 'Connected' : 'Failed'} - ${res.message || res.model}`);
-    });
-  </script>
+  <script src="app.js"></script>
 </body>
 </html>

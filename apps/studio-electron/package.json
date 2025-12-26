@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc && npm run copy-assets",
-    "copy-assets": "mkdir -p dist/renderer && cp src/renderer/*.html dist/renderer/",
+    "copy-assets": "mkdir -p dist/renderer && cp src/renderer/*.html src/renderer/*.css src/renderer/*.js dist/renderer/ 2>/dev/null || cp src/renderer/*.html dist/renderer/",
     "start": "electron --no-sandbox .",
     "dev": "npm run build && electron --no-sandbox .",
     "test": "vitest run",
