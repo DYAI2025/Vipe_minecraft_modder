@@ -11,6 +11,11 @@ export const IPC = {
   llmHealthCheck: "llm.healthCheck",
   llmCompleteJSON: "llm.completeJSON",
 
+  // TTS
+  ttsSpeak: "tts.speak",
+  ttsStop: "tts.stop",
+  ttsStreamEvent: "tts.streamEvent",
+
   // Settings
   settingsGet: "settings.get",
   settingsUpdate: "settings.update",

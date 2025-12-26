@@ -172,7 +172,7 @@ function updateStatus(element, status, text) {
   statusEl.querySelector('.status-text').textContent = text;
 }
 
-// ==================== VOICE FUNKTIONEN ====================
+// ==================== VOICE FUNKTIONEN (mit VoiceController & CraftyBrain) ====================
 async function toggleVoice() {
   if (!window.kidmod) {
     setCraftyMessage('Sprachsteuerung wird geladen...');
@@ -180,51 +180,33 @@ async function toggleVoice() {
   }
 
   if (isRecording) {
-    stopRecording();
+    await stopRecording();
   } else {
-    startRecording();
+    await startRecording();
   }
 }
 
 async function startRecording() {
-  isRecording = true;
-  btnVoice.classList.add('recording');
-  btnVoice.querySelector('.voice-text').textContent = 'Ich höre...';
-  setCraftyMessage(CRAFTY_MESSAGES.listening);
-  updateStatus('stt-status', 'loading', 'Höre zu...');
-
   try {
-    const streamId = 'stream-' + Date.now();
-
-    window.kidmod.stt.onStreamEvent((ev) => {
-      if (ev.type === 'interim') {
-        voiceTranscript.textContent = ev.text + '...';
-      } else if (ev.type === 'final') {
-        voiceTranscript.textContent = ev.text;
-        processVoiceInput(ev.text);
-      }
-    });
-
-    await window.kidmod.stt.streamStart({ streamId });
-
-    // Simulate some chunks for the echo provider
-    for (let i = 0; i < 12; i++) {
-      setTimeout(() => {
-        if (isRecording) {
-          const chunk = new Uint8Array(640);
-          window.kidmod.stt.streamPush({ streamId, chunkIndex: i, pcm16le: chunk });
-        }
-      }, i * 100);
-    }
-
+    await window.voiceController.startRecording();
+    isRecording = true;
+    btnVoice.classList.add('recording');
+    btnVoice.querySelector('.voice-text').textContent = 'Ich höre...';
+    setCraftyMessage(CRAFTY_MESSAGES.listening);
+    updateStatus('stt-status', 'loading', 'Höre zu...');
   } catch (error) {
-    setCraftyMessage(CRAFTY_MESSAGES.error);
-    updateStatus('stt-status', 'error', 'Fehler beim Zuhören');
-    stopRecording();
+    console.error('Recording error:', error);
+    setCraftyMessage('Hmm, dein Mikrofon funktioniert nicht. Ist es angeschlossen?');
+    updateStatus('stt-status', 'error', 'Mikrofon nicht gefunden');
   }
 }
 
-function stopRecording() {
+async function stopRecording() {
+  try {
+    await window.voiceController.stopRecording();
+  } catch (error) {
+    console.error('Stop recording error:', error);
+  }
   isRecording = false;
   btnVoice.classList.remove('recording');
   btnVoice.querySelector('.voice-text').textContent = 'Sprich mit mir!';
@@ -232,36 +214,90 @@ function stopRecording() {
 }
 
 async function processVoiceInput(text) {
+  if (!text?.trim()) return;
+
   setCraftyMessage(CRAFTY_MESSAGES.thinking);
   setCraftyState('thinking');
   updateStatus('llm-status', 'loading', 'Crafty denkt nach...');
 
   try {
-    const res = await window.kidmod.llm.completeJSON({
-      requestId: 'voice-' + Date.now(),
-      jsonSchema: {
-        type: 'object',
-        properties: {
-          action: { type: 'string' },
-          blockId: { type: 'string' }
-        }
-      }
-    });
+    const result = await window.craftyBrain.processInput(text);
 
-    if (res.ok) {
-      setCraftyMessage(CRAFTY_MESSAGES.success);
-      setCraftyState('happy');
-      updateStatus('llm-status', 'success', 'Idee gefunden!');
+    if (result) {
+      setCraftyMessage(result.text);
+      setCraftyState(result.emotion);
+      updateStatus('llm-status', 'success', 'Antwort bereit!');
+
+      // Handle suggested actions
+      if (result.suggestedAction === 'show_tutorial') {
+        // TODO: Show tutorial UI
+      }
     } else {
       setCraftyMessage(CRAFTY_MESSAGES.error);
-      updateStatus('llm-status', 'error', 'Noch keine Idee...');
+      updateStatus('llm-status', 'error', 'Keine Antwort...');
     }
   } catch (error) {
+    console.error('Process voice error:', error);
     setCraftyMessage(CRAFTY_MESSAGES.error);
     updateStatus('llm-status', 'error', 'Fehler beim Denken');
   }
+}
 
-  stopRecording();
+function setupVoiceCallbacks() {
+  // VoiceController callbacks
+  window.voiceController.onTranscriptUpdate = (text, isFinal) => {
+    voiceTranscript.textContent = isFinal ? text : text + '...';
+  };
+
+  window.voiceController.onFinalTranscript = (text) => {
+    stopRecording();
+    processVoiceInput(text);
+  };
+
+  window.voiceController.onVolumeChange = (volume) => {
+    // Update sound wave visualization
+    const wave = document.querySelector('.sound-wave');
+    if (wave) {
+      wave.style.transform = `scaleY(${0.5 + volume * 2})`;
+    }
+  };
+
+  window.voiceController.onPlaybackStateChange = (isPlaying) => {
+    if (isPlaying) {
+      setCraftyState('talking');
+    } else {
+      setCraftyState('');
+    }
+  };
+
+  // CraftyBrain callbacks
+  window.craftyBrain.onResponse = (response) => {
+    setCraftyMessage(response.text);
+    setCraftyState(response.emotion);
+  };
+
+  window.craftyBrain.onSpeaking = (isSpeaking) => {
+    if (isSpeaking) {
+      setCraftyState('talking');
+    }
+  };
+
+  window.craftyBrain.onStateChange = (state) => {
+    switch (state) {
+      case 'thinking':
+        updateStatus('llm-status', 'loading', 'Crafty denkt...');
+        break;
+      case 'speaking':
+        updateStatus('llm-status', 'success', 'Crafty spricht!');
+        break;
+      case 'idle':
+        updateStatus('llm-status', 'success', 'Bereit!');
+        break;
+      case 'error':
+        updateStatus('llm-status', 'error', 'Ups, Fehler!');
+        break;
+    }
+  };
 }
 
 // ==================== MOD ERSTELLEN ====================
@@ -335,19 +371,32 @@ async function init() {
   btnCreate.addEventListener('click', createMod);
   btnClear.addEventListener('click', clearWorkbench);
 
+  // Initialize voice modules
+  if (window.voiceController) {
+    await window.voiceController.init();
+    setupVoiceCallbacks();
+  }
+
+  if (window.craftyBrain) {
+    window.craftyBrain.init();
+    // Set initial greeting
+    setCraftyMessage(window.craftyBrain.getGreeting());
+  }
+
   // Initial health check
   if (window.kidmod) {
     try {
       const health = await window.kidmod.llm.healthCheck({});
       if (health.ok) {
         updateStatus('llm-status', 'success', 'Bereit zum Denken!');
+        updateStatus('stt-status', 'success', 'Bereit zum Zuhören!');
       }
     } catch (e) {
       updateStatus('llm-status', 'error', 'Nicht verbunden');
     }
   }
 
-  console.log('KidModStudio initialized!');
+  console.log('KidModStudio initialized with Crafty Voice!');
 }
 
 // Start when DOM is ready

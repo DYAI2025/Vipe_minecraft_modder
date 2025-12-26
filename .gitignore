@@ -5,3 +5,4 @@ dist/
 settings.json
 settings.invalid.*.json
 Antura-main/
+.worktrees/

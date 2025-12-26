@@ -21,13 +21,25 @@ export const DEFAULT_SETTINGS: SettingsConfig = {
       provider: "openai_compatible",
       baseUrl: "http://127.0.0.1:11434/v1",
       apiKeyRef: "secret:llm_api_key",
-      model: "qwen2.5:7b-instruct",
+      model: "llama3.2:latest",
       requestTimeoutMs: 60000,
       temperature: 0.2,
       maxTokens: 2048,
       jsonMode: "strict",
     },
     defaultMode: "actions_only",
+  },
+  tts: {
+    enabled: true,
+    providerConfig: {
+      provider: "openai",
+      baseUrl: "https://api.openai.com/v1",
+      apiKeyRef: "secret:openai_api_key",
+      model: "tts-1",
+      voice: "nova", // Friendly voice for kids
+      speed: 0.9, // Slightly slower for clarity
+      responseFormat: "mp3",
+    },
   },
   safety: {
     allowPatchMode: true,

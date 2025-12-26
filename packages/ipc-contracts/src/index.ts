@@ -61,6 +61,69 @@ export interface LlmOpenAICompatibleConfig {
 export type LlmProviderConfig = LlmOpenAICompatibleConfig;
 
 // ============================================================
+// TTS Types
+// ============================================================
+
+export type TtsProviderId = "openai" | "elevenlabs" | "webspeech";
+
+export interface TtsOpenAIConfig {
+  provider: "openai";
+  baseUrl: string;
+  apiKeyRef?: SecretRef;
+  model: "tts-1" | "tts-1-hd";
+  voice: "alloy" | "echo" | "fable" | "onyx" | "nova" | "shimmer";
+  speed: number; // 0.25 - 4.0
+  responseFormat: "mp3" | "opus" | "aac" | "flac" | "pcm";
+}
+
+export interface TtsElevenLabsConfig {
+  provider: "elevenlabs";
+  apiKeyRef?: SecretRef;
+  voiceId: string;
+  modelId?: string;
+  stability?: number;
+  similarityBoost?: number;
+}
+
+export interface TtsWebSpeechConfig {
+  provider: "webspeech";
+  lang: LocaleTag;
+  rate?: number;
+  pitch?: number;
+}
+
+export type TtsProviderConfig = TtsOpenAIConfig | TtsElevenLabsConfig | TtsWebSpeechConfig;
+
+// TTS IPC Types
+export interface TtsSpeakReq {
+  requestId: string;
+  text: string;
+  settingsOverride?: Partial<TtsProviderConfig>;
+}
+
+export interface TtsSpeakRes {
+  ok: boolean;
+  requestId: string;
+  durationMs?: number;
+  error?: { message: string; code?: string };
+}
+
+export interface TtsStopReq {
+  requestId?: string;
+}
+
+export interface TtsStopRes {
+  ok: boolean;
+  stoppedCount: number;
+}
+
+export type TtsStreamEvent =
+  | { type: "start"; requestId: string; tMs: number }
+  | { type: "chunk"; requestId: string; audioData: Uint8Array; tMs: number }
+  | { type: "end"; requestId: string; durationMs: number; tMs: number }
+  | { type: "error"; requestId: string; message: string; code?: string; tMs: number };
+
+// ============================================================
 // Safety & UI Config
 // ============================================================
 
@@ -88,6 +151,10 @@ export interface SettingsConfig {
   llm: {
     providerConfig: LlmProviderConfig;
     defaultMode: LlmSafetyModeDefault;
+  };
+  tts: {
+    enabled: boolean;
+    providerConfig: TtsProviderConfig;
   };
   safety: SafetyConfig;
   ui: UiConfig;
@@ -228,6 +295,11 @@ export interface KidModBridge {
   llm: {
     healthCheck(req: LlmHealthCheckReq): Promise<LlmHealthCheckRes>;
     completeJSON(req: LlmCompleteJSONReq): Promise<LlmCompleteJSONRes>;
+  };
+  tts: {
+    speak(req: TtsSpeakReq): Promise<TtsSpeakRes>;
+    stop(req: TtsStopReq): Promise<TtsStopRes>;
+    onStreamEvent(cb: (ev: TtsStreamEvent) => void): () => void;
   };
   settings: {
     get(): Promise<SettingsConfig>;
