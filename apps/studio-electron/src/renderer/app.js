@@ -358,6 +358,187 @@ function setupTabs() {
   });
 }
 
+// ==================== WEBSPEECH TTS ====================
+let webSpeechVoices = [];
+let useWebSpeechTTS = true; // Default to WebSpeech (no API key needed)
+
+function initWebSpeechTTS() {
+  if ('speechSynthesis' in window) {
+    // Load voices
+    const loadVoices = () => {
+      webSpeechVoices = speechSynthesis.getVoices();
+      populateVoiceSelect();
+    };
+
+    loadVoices();
+    speechSynthesis.onvoiceschanged = loadVoices;
+    return true;
+  }
+  return false;
+}
+
+function populateVoiceSelect() {
+  const voiceSelect = document.getElementById('tts-voice');
+  if (!voiceSelect) return;
+
+  voiceSelect.innerHTML = '';
+
+  // Filter German voices first, then others
+  const germanVoices = webSpeechVoices.filter(v => v.lang.startsWith('de'));
+  const otherVoices = webSpeechVoices.filter(v => !v.lang.startsWith('de'));
+
+  [...germanVoices, ...otherVoices].forEach((voice, i) => {
+    const option = document.createElement('option');
+    option.value = i;
+    option.textContent = `${voice.name} (${voice.lang})`;
+    if (voice.lang.startsWith('de')) option.textContent = '🇩🇪 ' + option.textContent;
+    voiceSelect.appendChild(option);
+  });
+}
+
+function speakWithWebSpeech(text) {
+  if (!('speechSynthesis' in window)) return false;
+
+  // Cancel any ongoing speech
+  speechSynthesis.cancel();
+
+  const utterance = new SpeechSynthesisUtterance(text);
+
+  // Get selected voice
+  const voiceSelect = document.getElementById('tts-voice');
+  const speedSlider = document.getElementById('tts-speed');
+
+  if (voiceSelect && webSpeechVoices.length > 0) {
+    const voiceIndex = parseInt(voiceSelect.value) || 0;
+    utterance.voice = webSpeechVoices[voiceIndex];
+  }
+
+  // Find a German voice as fallback
+  if (!utterance.voice) {
+    utterance.voice = webSpeechVoices.find(v => v.lang.startsWith('de')) || webSpeechVoices[0];
+  }
+
+  utterance.rate = speedSlider ? parseFloat(speedSlider.value) : 0.9;
+  utterance.lang = 'de-DE';
+
+  // Animation callbacks
+  utterance.onstart = () => setCraftyState('talking');
+  utterance.onend = () => setCraftyState('');
+
+  speechSynthesis.speak(utterance);
+  return true;
+}
+
+// ==================== SETTINGS ====================
+function setupSettings() {
+  const settingsBtn = document.querySelector('.settings-btn');
+  const settingsModal = document.getElementById('settings-modal');
+  const closeBtn = document.getElementById('btn-close-settings');
+  const saveBtn = document.getElementById('btn-save-settings');
+  const testTtsBtn = document.getElementById('btn-test-tts');
+  const ttsProvider = document.getElementById('tts-provider');
+  const ttsSpeed = document.getElementById('tts-speed');
+  const ttsSpeedValue = document.getElementById('tts-speed-value');
+
+  // Open settings
+  settingsBtn?.addEventListener('click', async () => {
+    settingsModal.style.display = 'flex';
+    await loadSettingsToUI();
+  });
+
+  // Close settings
+  closeBtn?.addEventListener('click', () => {
+    settingsModal.style.display = 'none';
+  });
+
+  // Click outside to close
+  settingsModal?.addEventListener('click', (e) => {
+    if (e.target === settingsModal) {
+      settingsModal.style.display = 'none';
+    }
+  });
+
+  // Speed slider
+  ttsSpeed?.addEventListener('input', () => {
+    ttsSpeedValue.textContent = ttsSpeed.value + 'x';
+  });
+
+  // Test TTS
+  testTtsBtn?.addEventListener('click', () => {
+    const text = 'Ssssalut! Ich bin Crafty, dein Minecraft Helfer!';
+    if (ttsProvider?.value === 'webspeech') {
+      speakWithWebSpeech(text);
+    } else {
+      // Use IPC TTS
+      window.kidmod?.tts?.speak({ requestId: 'test-' + Date.now(), text });
+    }
+  });
+
+  // Save settings
+  saveBtn?.addEventListener('click', async () => {
+    await saveSettingsFromUI();
+    settingsModal.style.display = 'none';
+    setCraftyMessage('Einstellungen gespeichert! 💾');
+  });
+
+  // Provider change
+  ttsProvider?.addEventListener('change', () => {
+    useWebSpeechTTS = ttsProvider.value === 'webspeech';
+  });
+}
+
+async function loadSettingsToUI() {
+  if (!window.kidmod) return;
+
+  try {
+    const settings = await window.kidmod.settings.get();
+
+    document.getElementById('llm-url').value = settings.llm?.providerConfig?.baseUrl || '';
+    document.getElementById('llm-model').value = settings.llm?.providerConfig?.model || '';
+    document.getElementById('tts-speed').value = settings.tts?.providerConfig?.speed || 0.9;
+    document.getElementById('tts-speed-value').textContent = (settings.tts?.providerConfig?.speed || 0.9) + 'x';
+
+    const ttsProvider = document.getElementById('tts-provider');
+    if (settings.tts?.providerConfig?.provider === 'openai') {
+      ttsProvider.value = 'openai';
+      useWebSpeechTTS = false;
+    } else {
+      ttsProvider.value = 'webspeech';
+      useWebSpeechTTS = true;
+    }
+  } catch (e) {
+    console.error('Failed to load settings:', e);
+  }
+}
+
+async function saveSettingsFromUI() {
+  if (!window.kidmod) return;
+
+  try {
+    const ttsProvider = document.getElementById('tts-provider').value;
+    useWebSpeechTTS = ttsProvider === 'webspeech';
+
+    const patch = {
+      llm: {
+        providerConfig: {
+          baseUrl: document.getElementById('llm-url').value,
+          model: document.getElementById('llm-model').value,
+        }
+      },
+      tts: {
+        providerConfig: {
+          provider: ttsProvider,
+          speed: parseFloat(document.getElementById('tts-speed').value),
+        }
+      }
+    };
+
+    await window.kidmod.settings.update(patch);
+  } catch (e) {
+    console.error('Failed to save settings:', e);
+  }
+}
+
 // ==================== INITIALISIERUNG ====================
 async function init() {
   // Setup UI
@@ -365,6 +546,10 @@ async function init() {
   setupCraftingSlots();
   renderInventory('blocks');
   startIdleMessages();
+  setupSettings();
+
+  // Initialize WebSpeech TTS
+  initWebSpeechTTS();
 
   // Event Listeners
   btnVoice.addEventListener('click', toggleVoice);
@@ -379,6 +564,15 @@ async function init() {
 
   if (window.craftyBrain) {
     window.craftyBrain.init();
+    // Override speak to use WebSpeech when enabled
+    const originalSpeak = window.craftyBrain.speak.bind(window.craftyBrain);
+    window.craftyBrain.speak = async (text) => {
+      if (useWebSpeechTTS) {
+        speakWithWebSpeech(text);
+      } else {
+        await originalSpeak(text);
+      }
+    };
     // Set initial greeting
     setCraftyMessage(window.craftyBrain.getGreeting());
   }

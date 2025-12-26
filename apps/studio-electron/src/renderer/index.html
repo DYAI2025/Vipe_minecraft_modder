@@ -107,6 +107,51 @@
     </div>
   </footer>
 
+  <!-- Settings Modal -->
+  <div class="modal-overlay" id="settings-modal" style="display: none;">
+    <div class="modal-content">
+      <h2>⚙️ Einstellungen</h2>
+
+      <div class="settings-section">
+        <h3>🗣️ Sprachausgabe (TTS)</h3>
+        <label class="settings-row">
+          <span>Provider:</span>
+          <select id="tts-provider">
+            <option value="webspeech">Browser (kostenlos)</option>
+            <option value="openai">OpenAI (API-Key nötig)</option>
+          </select>
+        </label>
+        <label class="settings-row">
+          <span>Stimme:</span>
+          <select id="tts-voice"></select>
+        </label>
+        <label class="settings-row">
+          <span>Geschwindigkeit:</span>
+          <input type="range" id="tts-speed" min="0.5" max="2" step="0.1" value="0.9">
+          <span id="tts-speed-value">0.9x</span>
+        </label>
+        <button class="mc-button" id="btn-test-tts">🔊 Testen</button>
+      </div>
+
+      <div class="settings-section">
+        <h3>🧠 LLM</h3>
+        <label class="settings-row">
+          <span>Server:</span>
+          <input type="text" id="llm-url" placeholder="http://127.0.0.1:11434/v1">
+        </label>
+        <label class="settings-row">
+          <span>Modell:</span>
+          <input type="text" id="llm-model" placeholder="llama3.2:latest">
+        </label>
+      </div>
+
+      <div class="modal-buttons">
+        <button class="mc-button primary" id="btn-save-settings">💾 Speichern</button>
+        <button class="mc-button" id="btn-close-settings">❌ Schließen</button>
+      </div>
+    </div>
+  </div>
+
   <script src="craftyBrain.js"></script>
   <script src="voiceController.js"></script>
   <script src="app.js"></script>
