@@ -6,7 +6,7 @@ import { settingsStore } from "./settingsStore.js";
 import { registerSttHandlers } from "./ipcHandlers/stt.js";
 import { registerLlmHandlers } from "./ipcHandlers/llm.js";
 import { registerSettingsHandlers } from "./ipcHandlers/settings.js";
-import { registerTtsHandlers } from "./ipcHandlers/tts.js";
+import { registerTtsHandlers } from "./ipcHandlers/tts.register.js";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
