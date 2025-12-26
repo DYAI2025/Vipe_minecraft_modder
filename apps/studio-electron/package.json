@@ -5,9 +5,10 @@
   "main": "dist/main/index.js",
   "type": "module",
   "scripts": {
-    "build": "tsc",
-    "start": "electron .",
-    "dev": "tsc && electron .",
+    "build": "tsc && npm run copy-assets",
+    "copy-assets": "mkdir -p dist/renderer && cp src/renderer/*.html dist/renderer/",
+    "start": "electron --no-sandbox .",
+    "dev": "npm run build && electron --no-sandbox .",
     "test": "vitest run",
     "test:watch": "vitest",
     "package": "electron-builder"
