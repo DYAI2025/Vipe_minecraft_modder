@@ -387,6 +387,22 @@ const OPENAI_VOICES = [
   { id: 'shimmer', name: 'Shimmer', desc: 'Hell & freundlich' },
 ];
 
+// ElevenLabs default voices
+const ELEVENLABS_VOICES = [
+  { id: 'EXAVITQu4vr4xnSDxMaL', name: 'Sarah', desc: 'Weiblich, sanft' },
+  { id: 'ErXwobaYiN019PkySvjV', name: 'Antoni', desc: 'Männlich, freundlich' },
+  { id: 'MF3mGyEYCl7XYWbV9V6O', name: 'Elli', desc: 'Weiblich, jung' },
+  { id: 'TxGEqnHWrfWFTfGW9XjX', name: 'Josh', desc: 'Männlich, tief' },
+  { id: 'pNInz6obpgDQGcFmaJgB', name: 'Adam', desc: 'Männlich, klar' },
+];
+
+// LLM Provider URLs
+const LLM_PROVIDERS = {
+  ollama: { url: 'http://127.0.0.1:11434/v1', needsKey: false },
+  openai: { url: 'https://api.openai.com/v1', needsKey: true },
+  anthropic: { url: 'https://api.anthropic.com/v1', needsKey: true },
+};
+
 function populateVoiceSelect(provider = 'webspeech') {
   const voiceSelect = document.getElementById('tts-voice');
   if (!voiceSelect) return;
@@ -394,11 +410,17 @@ function populateVoiceSelect(provider = 'webspeech') {
   voiceSelect.innerHTML = '';
 
   if (provider === 'openai') {
-    // OpenAI voices
     OPENAI_VOICES.forEach(voice => {
       const option = document.createElement('option');
       option.value = voice.id;
       option.textContent = `🤖 ${voice.name} - ${voice.desc}`;
+      voiceSelect.appendChild(option);
+    });
+  } else if (provider === 'elevenlabs') {
+    ELEVENLABS_VOICES.forEach(voice => {
+      const option = document.createElement('option');
+      option.value = voice.id;
+      option.textContent = `🎭 ${voice.name} - ${voice.desc}`;
       voiceSelect.appendChild(option);
     });
   } else {
@@ -406,13 +428,69 @@ function populateVoiceSelect(provider = 'webspeech') {
     const germanVoices = webSpeechVoices.filter(v => v.lang.startsWith('de'));
     const otherVoices = webSpeechVoices.filter(v => !v.lang.startsWith('de'));
 
-    [...germanVoices, ...otherVoices].forEach((voice, i) => {
+    if (germanVoices.length === 0 && otherVoices.length === 0) {
       const option = document.createElement('option');
-      option.value = i;
-      option.textContent = `${voice.name} (${voice.lang})`;
-      if (voice.lang.startsWith('de')) option.textContent = '🇩🇪 ' + option.textContent;
+      option.value = 'default';
+      option.textContent = '🌐 Standard-Stimme';
       voiceSelect.appendChild(option);
-    });
+    } else {
+      [...germanVoices, ...otherVoices].forEach((voice, i) => {
+        const option = document.createElement('option');
+        option.value = i;
+        option.textContent = `${voice.name} (${voice.lang})`;
+        if (voice.lang.startsWith('de')) option.textContent = '🇩🇪 ' + option.textContent;
+        voiceSelect.appendChild(option);
+      });
+    }
+  }
+}
+
+// Fetch Ollama models
+async function fetchOllamaModels() {
+  try {
+    const response = await fetch('http://127.0.0.1:11434/api/tags');
+    if (!response.ok) throw new Error('Ollama nicht erreichbar');
+    const data = await response.json();
+    return data.models || [];
+  } catch (e) {
+    console.error('Ollama fetch error:', e);
+    return [];
+  }
+}
+
+async function populateLlmModels() {
+  const modelSelect = document.getElementById('llm-model');
+  const provider = document.getElementById('llm-provider')?.value;
+  if (!modelSelect) return;
+
+  modelSelect.innerHTML = '<option value="">Lade...</option>';
+
+  if (provider === 'ollama') {
+    const models = await fetchOllamaModels();
+    modelSelect.innerHTML = '';
+    if (models.length === 0) {
+      modelSelect.innerHTML = '<option value="">Keine Modelle gefunden</option>';
+    } else {
+      models.forEach(model => {
+        const option = document.createElement('option');
+        option.value = model.name;
+        option.textContent = `🦙 ${model.name}`;
+        modelSelect.appendChild(option);
+      });
+    }
+  } else if (provider === 'openai') {
+    modelSelect.innerHTML = `
+      <option value="gpt-4o">🤖 GPT-4o</option>
+      <option value="gpt-4o-mini">🤖 GPT-4o-mini</option>
+      <option value="gpt-4-turbo">🤖 GPT-4-turbo</option>
+      <option value="gpt-3.5-turbo">🤖 GPT-3.5-turbo</option>
+    `;
+  } else if (provider === 'anthropic') {
+    modelSelect.innerHTML = `
+      <option value="claude-sonnet-4-20250514">🧠 Claude Sonnet 4</option>
+      <option value="claude-3-5-sonnet-20241022">🧠 Claude 3.5 Sonnet</option>
+      <option value="claude-3-haiku-20240307">🧠 Claude 3 Haiku</option>
+    `;
   }
 }
 
@@ -511,10 +589,27 @@ function setupSettings() {
           return;
         }
 
-        // Save settings first to apply API key
-        await saveSettingsFromUI();
+        // Check if kidmod bridge is available
+        if (!window.kidmod) {
+          alert('Fehler: Bridge nicht verfügbar');
+          testTtsBtn.disabled = false;
+          testTtsBtn.textContent = '🔊 Testen';
+          return;
+        }
 
-        const result = await window.kidmod?.tts?.speak({
+        if (!window.kidmod.tts) {
+          alert('Fehler: TTS nicht verfügbar');
+          testTtsBtn.disabled = false;
+          testTtsBtn.textContent = '🔊 Testen';
+          return;
+        }
+
+        // Save settings first to apply API key
+        console.log('[TTS Test] Saving settings...');
+        await saveSettingsFromUI();
+        console.log('[TTS Test] Settings saved, calling TTS...');
+
+        const result = await window.kidmod.tts.speak({
           requestId: 'test-' + Date.now(),
           text,
           settingsOverride: {
@@ -523,8 +618,10 @@ function setupSettings() {
           }
         });
 
+        console.log('[TTS Test] Result:', result);
+
         if (!result?.ok) {
-          alert('TTS Fehler: ' + (result?.error?.message || 'Unbekannter Fehler'));
+          alert('TTS Fehler: ' + (result?.error?.message || 'Unbekannter Fehler - Result: ' + JSON.stringify(result)));
         }
 
         testTtsBtn.disabled = false;
@@ -545,7 +642,7 @@ function setupSettings() {
     setCraftyMessage('Einstellungen gespeichert! 💾');
   });
 
-  // Provider change - show/hide API key field and update voices
+  // TTS Provider change - show/hide API key field and update voices
   ttsProvider?.addEventListener('change', () => {
     const provider = ttsProvider.value;
     useWebSpeechTTS = provider === 'webspeech';
@@ -558,16 +655,165 @@ function setupSettings() {
     // Update voice options for the selected provider
     populateVoiceSelect(provider);
   });
+
+  // LLM Provider change
+  const llmProvider = document.getElementById('llm-provider');
+  const llmApiKeyRow = document.getElementById('llm-api-key-row');
+  const llmHint = document.getElementById('llm-hint');
+  const llmUrl = document.getElementById('llm-url');
+
+  llmProvider?.addEventListener('change', async () => {
+    const provider = llmProvider.value;
+    const config = LLM_PROVIDERS[provider];
+
+    // Update URL
+    if (llmUrl && config) {
+      llmUrl.value = config.url;
+    }
+
+    // Show/hide API key
+    if (llmApiKeyRow) {
+      llmApiKeyRow.style.display = config?.needsKey ? 'flex' : 'none';
+    }
+    if (llmHint) {
+      llmHint.textContent = config?.needsKey ? '🔑 API-Key erforderlich' : '💡 Ollama braucht keinen API-Key';
+    }
+
+    // Update models
+    await populateLlmModels();
+  });
+
+  // Refresh models button
+  const refreshModelsBtn = document.getElementById('btn-refresh-models');
+  refreshModelsBtn?.addEventListener('click', async () => {
+    refreshModelsBtn.textContent = '⏳';
+    await populateLlmModels();
+    refreshModelsBtn.textContent = '🔄';
+  });
+
+  // Test LLM connection
+  const testLlmBtn = document.getElementById('btn-test-llm');
+  testLlmBtn?.addEventListener('click', async () => {
+    testLlmBtn.disabled = true;
+    testLlmBtn.textContent = '🔄 Teste...';
+
+    try {
+      if (window.kidmod) {
+        const result = await window.kidmod.llm.healthCheck({});
+        if (result.ok) {
+          alert(`✅ Verbindung OK!\nModell: ${result.model}\nLatenz: ${result.latencyMs}ms`);
+        } else {
+          alert(`❌ Verbindung fehlgeschlagen: ${result.message}`);
+        }
+      } else {
+        // Direct test for Ollama
+        const url = document.getElementById('llm-url')?.value || 'http://127.0.0.1:11434/v1';
+        const response = await fetch(url.replace('/v1', '/api/tags'));
+        if (response.ok) {
+          alert('✅ Ollama erreichbar!');
+        } else {
+          alert('❌ Ollama nicht erreichbar');
+        }
+      }
+    } catch (e) {
+      alert('❌ Fehler: ' + e.message);
+    }
+
+    testLlmBtn.disabled = false;
+    testLlmBtn.textContent = '🧪 Verbindung testen';
+  });
+
+  // Validate TTS API key
+  const validateTtsKeyBtn = document.getElementById('btn-validate-tts-key');
+  validateTtsKeyBtn?.addEventListener('click', async () => {
+    const apiKey = document.getElementById('tts-api-key')?.value;
+    const provider = ttsProvider?.value;
+
+    if (!apiKey) {
+      alert('Bitte API-Key eingeben');
+      return;
+    }
+
+    validateTtsKeyBtn.textContent = '⏳';
+
+    try {
+      if (provider === 'openai') {
+        const response = await fetch('https://api.openai.com/v1/models', {
+          headers: { 'Authorization': `Bearer ${apiKey}` }
+        });
+        if (response.ok) {
+          alert('✅ OpenAI API-Key gültig!');
+        } else {
+          alert('❌ OpenAI API-Key ungültig');
+        }
+      } else if (provider === 'elevenlabs') {
+        const response = await fetch('https://api.elevenlabs.io/v1/user', {
+          headers: { 'xi-api-key': apiKey }
+        });
+        if (response.ok) {
+          alert('✅ ElevenLabs API-Key gültig!');
+        } else {
+          alert('❌ ElevenLabs API-Key ungültig');
+        }
+      }
+    } catch (e) {
+      alert('❌ Fehler: ' + e.message);
+    }
+
+    validateTtsKeyBtn.textContent = '✓';
+  });
+
+  // Validate LLM API key
+  const validateLlmKeyBtn = document.getElementById('btn-validate-llm-key');
+  validateLlmKeyBtn?.addEventListener('click', async () => {
+    const apiKey = document.getElementById('llm-api-key')?.value;
+    const provider = llmProvider?.value;
+
+    if (!apiKey) {
+      alert('Bitte API-Key eingeben');
+      return;
+    }
+
+    validateLlmKeyBtn.textContent = '⏳';
+
+    try {
+      if (provider === 'openai') {
+        const response = await fetch('https://api.openai.com/v1/models', {
+          headers: { 'Authorization': `Bearer ${apiKey}` }
+        });
+        alert(response.ok ? '✅ OpenAI API-Key gültig!' : '❌ API-Key ungültig');
+      } else if (provider === 'anthropic') {
+        // Anthropic doesn't have a simple validation endpoint, so we'll just check format
+        if (apiKey.startsWith('sk-ant-')) {
+          alert('✅ Anthropic API-Key Format korrekt');
+        } else {
+          alert('⚠️ Anthropic API-Key sollte mit sk-ant- beginnen');
+        }
+      }
+    } catch (e) {
+      alert('❌ Fehler: ' + e.message);
+    }
+
+    validateLlmKeyBtn.textContent = '✓';
+  });
 }
 
 async function loadSettingsToUI() {
-  if (!window.kidmod) return;
+  // Load Ollama models even without bridge
+  await populateLlmModels();
+
+  // Initialize voice select
+  populateVoiceSelect('webspeech');
+
+  if (!window.kidmod) {
+    console.log('Bridge not available, using defaults');
+    return;
+  }
 
   try {
     const settings = await window.kidmod.settings.get();
 
-    document.getElementById('llm-url').value = settings.llm?.providerConfig?.baseUrl || '';
-    document.getElementById('llm-model').value = settings.llm?.providerConfig?.model || '';
+    document.getElementById('llm-url').value = settings.llm?.providerConfig?.baseUrl || 'http://127.0.0.1:11434/v1';
     document.getElementById('tts-speed').value = settings.tts?.providerConfig?.speed || 0.9;
     document.getElementById('tts-speed-value').textContent = (settings.tts?.providerConfig?.speed || 0.9) + 'x';
 
@@ -575,8 +821,9 @@ async function loadSettingsToUI() {
     const ttsApiKeyRow = document.getElementById('tts-api-key-row');
     const provider = settings.tts?.providerConfig?.provider || 'webspeech';
 
-    if (provider === 'openai') {
-      ttsProvider.value = 'openai';
+    // Set TTS provider
+    if (provider === 'openai' || provider === 'elevenlabs') {
+      ttsProvider.value = provider;
       useWebSpeechTTS = false;
       if (ttsApiKeyRow) ttsApiKeyRow.style.display = 'flex';
     } else {
@@ -593,6 +840,16 @@ async function loadSettingsToUI() {
     const currentVoice = settings.tts?.providerConfig?.voice;
     if (voiceSelect && currentVoice) {
       voiceSelect.value = currentVoice;
+    }
+
+    // Set LLM model after models are loaded
+    const modelSelect = document.getElementById('llm-model');
+    const currentModel = settings.llm?.providerConfig?.model;
+    if (modelSelect && currentModel) {
+      // Wait a bit for models to load
+      setTimeout(() => {
+        modelSelect.value = currentModel;
+      }, 500);
     }
   } catch (e) {
     console.error('Failed to load settings:', e);

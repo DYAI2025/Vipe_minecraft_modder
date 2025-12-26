@@ -1,7 +1,6 @@
 import { contextBridge, ipcRenderer } from "electron";
 import {
   IPC,
-  type KidModBridge,
   type SttStreamStartReq,
   type SttStreamPushReq,
   type SttStreamStopReq,
@@ -34,7 +33,7 @@ function validateChunk(chunk: Uint8Array): void {
   }
 }
 
-const bridge: KidModBridge = {
+const bridge = {
   stt: {
     streamStart: async (req: SttStreamStartReq) => {
       validateStreamId(req.streamId);
@@ -115,6 +114,25 @@ const bridge: KidModBridge = {
 
     update: async (patch: Partial<SettingsConfig>) => {
       return ipcRenderer.invoke(IPC.settingsUpdate, patch);
+    },
+  },
+
+  secrets: {
+    set: async (key: string, value: string) => {
+      if (typeof key !== "string" || key.length === 0) {
+        throw new Error("Invalid key");
+      }
+      if (typeof value !== "string") {
+        throw new Error("Invalid value");
+      }
+      return ipcRenderer.invoke(IPC.secretSet, key, value);
+    },
+
+    delete: async (key: string) => {
+      if (typeof key !== "string" || key.length === 0) {
+        throw new Error("Invalid key");
+      }
+      return ipcRenderer.invoke(IPC.secretDelete, key);
     },
   },
 };

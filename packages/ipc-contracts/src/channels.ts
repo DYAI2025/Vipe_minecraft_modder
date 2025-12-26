@@ -19,6 +19,10 @@ export const IPC = {
   // Settings
   settingsGet: "settings.get",
   settingsUpdate: "settings.update",
+
+  // Secrets
+  secretSet: "secret.set",
+  secretDelete: "secret.delete",
 } as const;
 
 export type IpcChannel = (typeof IPC)[keyof typeof IPC];

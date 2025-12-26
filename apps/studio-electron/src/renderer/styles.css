@@ -655,6 +655,12 @@ body {
   padding-left: 104px;
 }
 
+.mc-button.small {
+  padding: 4px 8px;
+  font-size: 12px;
+  min-width: auto;
+}
+
 .modal-buttons {
   display: flex;
   gap: var(--spacing-md);

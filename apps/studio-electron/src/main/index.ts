@@ -7,6 +7,7 @@ import { registerSttHandlers } from "./ipcHandlers/stt.js";
 import { registerLlmHandlers } from "./ipcHandlers/llm.js";
 import { registerSettingsHandlers } from "./ipcHandlers/settings.js";
 import { registerTtsHandlers } from "./ipcHandlers/tts.register.js";
+import { registerSecretsHandlers } from "./ipcHandlers/secrets.js";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
@@ -27,7 +28,7 @@ async function createWindow(): Promise<void> {
       preload: join(__dirname, "../preload/bridge.js"),
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: true,
+      sandbox: false, // Disabled for ESM preload support
     },
   });
 
@@ -36,6 +37,7 @@ async function createWindow(): Promise<void> {
   registerLlmHandlers();
   registerSettingsHandlers();
   registerTtsHandlers();
+  registerSecretsHandlers();
   log.info("IPC handlers registered");
 
   // Load renderer

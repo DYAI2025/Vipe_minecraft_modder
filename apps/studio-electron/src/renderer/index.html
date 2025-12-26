@@ -117,13 +117,15 @@
         <label class="settings-row">
           <span>Provider:</span>
           <select id="tts-provider">
-            <option value="webspeech">Browser (kostenlos)</option>
-            <option value="openai">OpenAI (API-Key nötig)</option>
+            <option value="webspeech">🌐 Browser (kostenlos)</option>
+            <option value="openai">🤖 OpenAI</option>
+            <option value="elevenlabs">🎭 ElevenLabs</option>
           </select>
         </label>
         <label class="settings-row api-key-row" id="tts-api-key-row" style="display: none;">
           <span>API-Key:</span>
           <input type="password" id="tts-api-key" placeholder="sk-...">
+          <button class="mc-button small" id="btn-validate-tts-key" title="API-Key prüfen">✓</button>
         </label>
         <label class="settings-row">
           <span>Stimme:</span>
@@ -140,18 +142,31 @@
       <div class="settings-section">
         <h3>🧠 LLM</h3>
         <label class="settings-row">
+          <span>Provider:</span>
+          <select id="llm-provider">
+            <option value="ollama">🦙 Ollama (lokal)</option>
+            <option value="openai">🤖 OpenAI</option>
+            <option value="anthropic">🧠 Anthropic Claude</option>
+          </select>
+        </label>
+        <label class="settings-row">
           <span>Server:</span>
           <input type="text" id="llm-url" placeholder="http://127.0.0.1:11434/v1">
         </label>
         <label class="settings-row">
           <span>Modell:</span>
-          <input type="text" id="llm-model" placeholder="llama3.2:latest">
+          <select id="llm-model">
+            <option value="llama3.2:latest">llama3.2:latest</option>
+          </select>
+          <button class="mc-button small" id="btn-refresh-models" title="Modelle aktualisieren">🔄</button>
         </label>
-        <label class="settings-row">
+        <label class="settings-row api-key-row" id="llm-api-key-row" style="display: none;">
           <span>API-Key:</span>
-          <input type="password" id="llm-api-key" placeholder="(leer für Ollama)">
+          <input type="password" id="llm-api-key" placeholder="API-Key">
+          <button class="mc-button small" id="btn-validate-llm-key" title="API-Key prüfen">✓</button>
         </label>
-        <p class="settings-hint">💡 Ollama braucht keinen API-Key</p>
+        <p class="settings-hint" id="llm-hint">💡 Ollama braucht keinen API-Key</p>
+        <button class="mc-button" id="btn-test-llm">🧪 Verbindung testen</button>
       </div>
 
       <div class="modal-buttons">

@@ -8,6 +8,7 @@ import type {
   TtsOpenAIConfig,
   SettingsConfig,
 } from "@kidmodstudio/ipc-contracts";
+import log from "electron-log";
 
 interface TtsHandlerDeps {
   getSettings: () => Promise<Pick<SettingsConfig, "tts">>;
@@ -67,9 +68,14 @@ export function createTtsHandlers(deps: TtsHandlerDeps) {
     deps.sendEvent({ type: "start", requestId: req.requestId, tMs: startTime });
 
     try {
+      log.info("[TTS] OpenAI config:", JSON.stringify(config, null, 2));
+
       const apiKey = config.apiKeyRef
         ? await deps.getSecret(config.apiKeyRef)
         : null;
+
+      log.info("[TTS] API Key found:", apiKey ? "yes (length: " + apiKey.length + ")" : "no");
+      log.info("[TTS] Calling:", `${config.baseUrl}/audio/speech`);
 
       const response = await fetch(`${config.baseUrl}/audio/speech`, {
         method: "POST",
@@ -88,7 +94,9 @@ export function createTtsHandlers(deps: TtsHandlerDeps) {
       });
 
       if (!response.ok) {
-        throw new Error(`OpenAI TTS error: ${response.status}`);
+        const errorText = await response.text();
+        log.error("[TTS] OpenAI error response:", response.status, errorText);
+        throw new Error(`OpenAI TTS error: ${response.status} - ${errorText}`);
       }
 
       const reader = response.body?.getReader();
@@ -119,6 +127,7 @@ export function createTtsHandlers(deps: TtsHandlerDeps) {
       return { ok: true, requestId: req.requestId, durationMs };
     } catch (error) {
       activeStreams.delete(req.requestId);
+      log.error("[TTS] Error:", error);
 
       const message = error instanceof Error ? error.message : "Unknown error";
       deps.sendEvent({
