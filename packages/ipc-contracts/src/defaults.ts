@@ -29,6 +29,18 @@ export const DEFAULT_SETTINGS: SettingsConfig = {
     },
     defaultMode: "actions_only",
   },
+  tts: {
+    enabled: true,
+    providerConfig: {
+      provider: "openai",
+      baseUrl: "https://api.openai.com/v1",
+      apiKeyRef: "secret:openai_api_key",
+      model: "tts-1",
+      voice: "nova", // Friendly voice for kids
+      speed: 0.9, // Slightly slower for clarity
+      responseFormat: "mp3",
+    },
+  },
   safety: {
     allowPatchMode: true,
     requireHumanReviewForPatches: true,

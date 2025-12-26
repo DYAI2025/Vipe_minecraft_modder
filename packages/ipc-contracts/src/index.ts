@@ -152,6 +152,10 @@ export interface SettingsConfig {
     providerConfig: LlmProviderConfig;
     defaultMode: LlmSafetyModeDefault;
   };
+  tts: {
+    enabled: boolean;
+    providerConfig: TtsProviderConfig;
+  };
   safety: SafetyConfig;
   ui: UiConfig;
 }

@@ -4,7 +4,7 @@
   "title": "KidModStudio SettingsConfig",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "stt", "llm", "safety", "ui"],
+  "required": ["schemaVersion", "stt", "llm", "tts", "safety", "ui"],
   "properties": {
     "schemaVersion": { "const": 1 },
 
@@ -87,6 +87,57 @@
             "maxTokens": { "type": "integer", "minimum": 1, "maximum": 32768 },
             "jsonMode": { "enum": ["strict", "best_effort"] }
           }
+        }
+      }
+    },
+
+    "tts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled", "providerConfig"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "providerConfig": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["provider", "baseUrl", "model", "voice", "speed", "responseFormat"],
+              "properties": {
+                "provider": { "const": "openai" },
+                "baseUrl": { "type": "string", "minLength": 1 },
+                "apiKeyRef": { "type": "string", "pattern": "^secret:.+$" },
+                "model": { "enum": ["tts-1", "tts-1-hd"] },
+                "voice": { "enum": ["alloy", "echo", "fable", "onyx", "nova", "shimmer"] },
+                "speed": { "type": "number", "minimum": 0.25, "maximum": 4.0 },
+                "responseFormat": { "enum": ["mp3", "opus", "aac", "flac", "pcm"] }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["provider", "voiceId"],
+              "properties": {
+                "provider": { "const": "elevenlabs" },
+                "apiKeyRef": { "type": "string", "pattern": "^secret:.+$" },
+                "voiceId": { "type": "string", "minLength": 1 },
+                "modelId": { "type": "string" },
+                "stability": { "type": "number", "minimum": 0, "maximum": 1 },
+                "similarityBoost": { "type": "number", "minimum": 0, "maximum": 1 }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["provider", "lang"],
+              "properties": {
+                "provider": { "const": "webspeech" },
+                "lang": { "enum": ["de-DE", "en-US"] },
+                "rate": { "type": "number", "minimum": 0.1, "maximum": 10 },
+                "pitch": { "type": "number", "minimum": 0, "maximum": 2 }
+              }
+            }
+          ]
         }
       }
     },
