@@ -481,9 +481,13 @@ function setupSettings() {
     setCraftyMessage('Einstellungen gespeichert! 💾');
   });
 
-  // Provider change
+  // Provider change - show/hide API key field
   ttsProvider?.addEventListener('change', () => {
     useWebSpeechTTS = ttsProvider.value === 'webspeech';
+    const apiKeyRow = document.getElementById('tts-api-key-row');
+    if (apiKeyRow) {
+      apiKeyRow.style.display = useWebSpeechTTS ? 'none' : 'flex';
+    }
   });
 }
 
@@ -499,13 +503,20 @@ async function loadSettingsToUI() {
     document.getElementById('tts-speed-value').textContent = (settings.tts?.providerConfig?.speed || 0.9) + 'x';
 
     const ttsProvider = document.getElementById('tts-provider');
+    const ttsApiKeyRow = document.getElementById('tts-api-key-row');
+
     if (settings.tts?.providerConfig?.provider === 'openai') {
       ttsProvider.value = 'openai';
       useWebSpeechTTS = false;
+      if (ttsApiKeyRow) ttsApiKeyRow.style.display = 'flex';
     } else {
       ttsProvider.value = 'webspeech';
       useWebSpeechTTS = true;
+      if (ttsApiKeyRow) ttsApiKeyRow.style.display = 'none';
     }
+
+    // Note: API keys are stored securely and not loaded back to UI for security
+    // Placeholder shows if key is set
   } catch (e) {
     console.error('Failed to load settings:', e);
   }
@@ -515,23 +526,44 @@ async function saveSettingsFromUI() {
   if (!window.kidmod) return;
 
   try {
-    const ttsProvider = document.getElementById('tts-provider').value;
-    useWebSpeechTTS = ttsProvider === 'webspeech';
+    const ttsProviderValue = document.getElementById('tts-provider').value;
+    useWebSpeechTTS = ttsProviderValue === 'webspeech';
+
+    const ttsApiKey = document.getElementById('tts-api-key')?.value;
+    const llmApiKey = document.getElementById('llm-api-key')?.value;
 
     const patch = {
       llm: {
         providerConfig: {
+          provider: 'openai_compatible',
           baseUrl: document.getElementById('llm-url').value,
           model: document.getElementById('llm-model').value,
         }
       },
       tts: {
         providerConfig: {
-          provider: ttsProvider,
+          provider: ttsProviderValue,
           speed: parseFloat(document.getElementById('tts-speed').value),
         }
       }
     };
+
+    // Store API keys if provided (for OpenAI TTS)
+    if (ttsApiKey && ttsProviderValue === 'openai') {
+      // Store via secret store
+      if (window.kidmod.secrets?.set) {
+        await window.kidmod.secrets.set('openai_api_key', ttsApiKey);
+      }
+      patch.tts.providerConfig.apiKeyRef = 'secret:openai_api_key';
+    }
+
+    // LLM API key (optional for Ollama)
+    if (llmApiKey) {
+      if (window.kidmod.secrets?.set) {
+        await window.kidmod.secrets.set('llm_api_key', llmApiKey);
+      }
+      patch.llm.providerConfig.apiKeyRef = 'secret:llm_api_key';
+    }
 
     await window.kidmod.settings.update(patch);
   } catch (e) {

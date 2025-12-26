@@ -121,6 +121,10 @@
             <option value="openai">OpenAI (API-Key nötig)</option>
           </select>
         </label>
+        <label class="settings-row api-key-row" id="tts-api-key-row" style="display: none;">
+          <span>API-Key:</span>
+          <input type="password" id="tts-api-key" placeholder="sk-...">
+        </label>
         <label class="settings-row">
           <span>Stimme:</span>
           <select id="tts-voice"></select>
@@ -143,6 +147,11 @@
           <span>Modell:</span>
           <input type="text" id="llm-model" placeholder="llama3.2:latest">
         </label>
+        <label class="settings-row">
+          <span>API-Key:</span>
+          <input type="password" id="llm-api-key" placeholder="(leer für Ollama)">
+        </label>
+        <p class="settings-hint">💡 Ollama braucht keinen API-Key</p>
       </div>
 
       <div class="modal-buttons">
