@@ -11,6 +11,9 @@ import {
   type LlmHealthCheckReq,
   type LlmCompleteJSONReq,
   type SettingsConfig,
+  type TtsSpeakReq,
+  type TtsStopReq,
+  type TtsStreamEvent,
 } from "@kidmodstudio/ipc-contracts";
 
 const MAX_STREAM_ID_LENGTH = 64;
@@ -78,6 +81,30 @@ const bridge: KidModBridge = {
         throw new Error("Invalid requestId");
       }
       return ipcRenderer.invoke(IPC.llmCompleteJSON, req);
+    },
+  },
+
+  tts: {
+    speak: async (req: TtsSpeakReq) => {
+      if (typeof req.requestId !== "string" || req.requestId.length === 0) {
+        throw new Error("Invalid requestId");
+      }
+      if (typeof req.text !== "string" || req.text.length === 0) {
+        throw new Error("Invalid text: must be non-empty string");
+      }
+      return ipcRenderer.invoke(IPC.ttsSpeak, req);
+    },
+
+    stop: async (req: TtsStopReq) => {
+      return ipcRenderer.invoke(IPC.ttsStop, req);
+    },
+
+    onStreamEvent: (cb: (ev: TtsStreamEvent) => void) => {
+      const handler = (_event: Electron.IpcRendererEvent, data: TtsStreamEvent) => cb(data);
+      ipcRenderer.on(IPC.ttsStreamEvent, handler);
+      return () => {
+        ipcRenderer.removeListener(IPC.ttsStreamEvent, handler);
+      };
     },
   },
 

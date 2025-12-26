@@ -158,3 +158,40 @@ export function createTtsHandlers(deps: TtsHandlerDeps) {
 
   return { speak, stop };
 }
+
+export function registerTtsHandlers(): void {
+  // Dynamic imports to avoid loading Electron in tests
+  const { ipcMain, BrowserWindow } = require("electron");
+  const log = require("electron-log").default;
+  const { IPC } = require("@kidmodstudio/ipc-contracts");
+  const { settingsStore } = require("../settingsStore.js");
+  const { secretStore } = require("../secretStore.js");
+
+  const handlers = createTtsHandlers({
+    getSettings: async () => {
+      const settings = settingsStore.get();
+      return { tts: settings.tts };
+    },
+    getSecret: async (ref: string) => {
+      return secretStore.get(ref as `secret:${string}`);
+    },
+    sendEvent: (event: TtsStreamEvent) => {
+      const windows = BrowserWindow.getAllWindows();
+      for (const win of windows) {
+        win.webContents.send(IPC.ttsStreamEvent, event);
+      }
+    },
+  });
+
+  ipcMain.handle(IPC.ttsSpeak, async (_event: unknown, req: TtsSpeakReq) => {
+    log.debug("[TTS] speak request:", req.requestId, req.text.slice(0, 50));
+    return handlers.speak(req);
+  });
+
+  ipcMain.handle(IPC.ttsStop, async (_event: unknown, req: TtsStopReq) => {
+    log.debug("[TTS] stop request:", req.requestId ?? "all");
+    return handlers.stop(req);
+  });
+
+  log.info("[TTS] IPC handlers registered");
+}

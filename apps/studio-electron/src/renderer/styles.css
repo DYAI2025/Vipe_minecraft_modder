@@ -425,6 +425,75 @@ body {
   75% { transform: translateY(-10px) rotate(5deg); }
 }
 
+.crafty.talking {
+  animation: crafty-talk 0.2s ease-in-out infinite;
+}
+
+@keyframes crafty-talk {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.crafty.talking .crafty-mouth {
+  animation: mouth-talk 0.15s ease-in-out infinite;
+}
+
+@keyframes mouth-talk {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(1.5) scaleX(0.8); }
+}
+
+.crafty.excited {
+  animation: crafty-excited 0.2s ease-in-out infinite;
+}
+
+@keyframes crafty-excited {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-8px) scale(1.1); }
+}
+
+/* Sound Wave Animation for Recording */
+.sound-wave {
+  width: 60px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  transition: transform 0.1s ease-out;
+}
+
+.sound-wave::before,
+.sound-wave::after,
+.voice-btn.recording .sound-wave::before,
+.voice-btn.recording .sound-wave::after {
+  content: '';
+  width: 4px;
+  height: 20px;
+  background: var(--gold);
+  animation: wave-bar 0.4s ease-in-out infinite;
+}
+
+.sound-wave::after {
+  animation-delay: 0.2s;
+}
+
+@keyframes wave-bar {
+  0%, 100% { transform: scaleY(0.3); }
+  50% { transform: scaleY(1); }
+}
+
+/* TTS Status Indicator */
+.status-item.speaking {
+  border-left: 3px solid var(--gold);
+  animation: speaking-glow 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes speaking-glow {
+  from { background: var(--stone-dark); }
+  to { background: rgba(255, 204, 0, 0.2); }
+}
+
 /* Speech Bubble */
 .speech-bubble {
   background: var(--white);
