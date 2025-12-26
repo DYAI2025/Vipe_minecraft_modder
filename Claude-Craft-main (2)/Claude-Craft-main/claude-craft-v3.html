@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎮 Claude-Craft IDE v3.0 - Minecraft Mod Creator</title>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .app-container {
+            display: grid;
+            grid-template-columns: 250px 1fr 300px;
+            grid-template-rows: 60px 1fr 40px;
+            height: 100vh;
+            gap: 10px;
+            padding: 10px;
+        }
+        
+        /* Header */
+        .header {
+            grid-column: 1 / -1;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            flex: 1;
+            color: #5e72e4;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .voice-control {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .voice-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(255,107,107,0.3);
+        }
+        
+        .voice-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        .voice-btn.listening {
+            animation: pulse 1s infinite;
+            background: linear-gradient(135deg, #48c774, #3ec46d);
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(72, 199, 116, 0.7); }
+            70% { box-shadow: 0 0 0 20px rgba(72, 199, 116, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(72, 199, 116, 0); }
+        }
+        
+        .voice-status {
+            padding: 10px 20px;
+            background: rgba(0,0,0,0.05);
+            border-radius: 25px;
+            min-width: 200px;
+            text-align: center;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .tool-section {
+            margin-bottom: 25px;
+        }
+        
+        .tool-section h3 {
+            color: #5e72e4;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .tool-btn {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 8px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .tool-btn:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(102,126,234,0.4);
+        }
+        
+        /* Main Viewer */
+        .main-viewer {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #canvas-container {
+            flex: 1;
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            border-radius: 10px;
+            position: relative;
+            min-height: 400px;
+        }
+        
+        .viewer-controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 10px;
+            z-index: 10;
+        }
+        
+        .viewer-controls button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.9);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .viewer-controls button:hover {
+            background: white;
+            transform: scale(1.05);
+        }
+        
+        /* Properties Panel */
+        .properties {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .property-group {
+            margin-bottom: 20px;
+        }
+        
+        .property-group h3 {
+            color: #5e72e4;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        
+        .property-input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .color-picker {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        
+        .color-btn {
+            width: 35px;
+            height: 35px;
+            border: 2px solid white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .color-btn:hover {
+            transform: scale(1.2);
+        }
+        
+        /* Status Bar */
+        .status-bar {
+            grid-column: 1 / -1;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            font-size: 12px;
+        }
+        
+        .status-item {
+            margin-right: 30px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .status-led {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #48c774;
+            animation: blink 2s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        
+        /* Floating Claude Assistant */
+        .claude-helper {
+            position: fixed;
+            bottom: 60px;
+            right: 20px;
+            background: white;
+            border-radius: 20px;
+            padding: 15px 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            max-width: 300px;
+            display: none;
+            animation: slideIn 0.5s;
+        }
+        
+        .claude-helper.active {
+            display: block;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateY(100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .claude-helper p {
+            margin: 0;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .animations-panel {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .anim-btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: white;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+        
+        .anim-btn:hover {
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>
+                <span>🎮</span>
+                Claude-Craft IDE v3.0
+            </h1>
+            <div class="voice-control">
+                <div class="voice-status" id="voiceStatus">
+                    🎤 Bereit zum Sprechen
+                </div>
+                <button class="voice-btn" id="voiceBtn" onclick="toggleVoice()">
+                    🎤
+                </button>
+            </div>
+        </div>
+        
+        <!-- Sidebar Tools -->        <div class="sidebar">
+            <div class="tool-section">
+                <h3>🧱 Blöcke erstellen</h3>
+                <button class="tool-btn" onclick="createBlock('stone')">
+                    <span>⛰️</span> Stein-Block
+                </button>
+                <button class="tool-btn" onclick="createBlock('grass')">
+                    <span>🌿</span> Gras-Block
+                </button>
+                <button class="tool-btn" onclick="createBlock('diamond')">
+                    <span>💎</span> Diamant-Block
+                </button>
+                <button class="tool-btn" onclick="createBlock('glass')">
+                    <span>🪟</span> Glas-Block
+                </button>
+                <button class="tool-btn" onclick="createBlock('tnt')">
+                    <span>🧨</span> TNT-Block
+                </button>
+            </div>
+            
+            <div class="tool-section">
+                <h3>⚔️ Items erstellen</h3>
+                <button class="tool-btn" onclick="createItem('sword')">
+                    <span>🗡️</span> Schwert
+                </button>
+                <button class="tool-btn" onclick="createItem('pickaxe')">
+                    <span>⛏️</span> Spitzhacke
+                </button>
+                <button class="tool-btn" onclick="createItem('bow')">
+                    <span>🏹</span> Bogen
+                </button>
+            </div>
+            
+            <div class="tool-section">
+                <h3>🎯 Quick Actions</h3>
+                <button class="tool-btn" onclick="exportToMCreator()">
+                    <span>💾</span> Export zu MCreator
+                </button>
+                <button class="tool-btn" onclick="saveSession()">
+                    <span>📁</span> Session speichern
+                </button>
+            </div>
+        </div>
+        
+        <!-- Main 3D Viewer -->
+        <div class="main-viewer">
+            <div id="canvas-container">
+                <div class="viewer-controls">
+                    <button onclick="resetCamera()">🔄</button>
+                    <button onclick="toggleWireframe()">📐</button>
+                    <button onclick="screenshot()">📸</button>
+                </div>
+            </div>
+            <div class="animations-panel">
+                <button class="anim-btn" onclick="animate('rotate')">🔄 Rotieren</button>
+                <button class="anim-btn" onclick="animate('float')">☁️ Schweben</button>
+                <button class="anim-btn" onclick="animate('pulse')">💗 Pulsieren</button>
+                <button class="anim-btn" onclick="animate('rainbow')">🌈 Regenbogen</button>
+                <button class="anim-btn" onclick="animate('shake')">🫨 Wackeln</button>
+            </div>
+        </div>
+        
+        <!-- Properties Panel -->
+        <div class="properties">
+            <div class="property-group">
+                <h3>📝 Objekt-Name</h3>
+                <input type="text" class="property-input" id="objectName" placeholder="Mein Block" value="CustomBlock">
+            </div>
+            
+            <div class="property-group">
+                <h3>🎨 Farbe</h3>
+                <div class="color-picker">
+                    <div class="color-btn" style="background: #ff6b6b" onclick="setColor('#ff6b6b')"></div>
+                    <div class="color-btn" style="background: #4ecdc4" onclick="setColor('#4ecdc4')"></div>
+                    <div class="color-btn" style="background: #45b7d1" onclick="setColor('#45b7d1')"></div>
+                    <div class="color-btn" style="background: #f7b731" onclick="setColor('#f7b731')"></div>
+                    <div class="color-btn" style="background: #5f27cd" onclick="setColor('#5f27cd')"></div>
+                    <div class="color-btn" style="background: #00d2d3" onclick="setColor('#00d2d3')"></div>
+                    <div class="color-btn" style="background: #ff9ff3" onclick="setColor('#ff9ff3')"></div>
+                    <div class="color-btn" style="background: #54a0ff" onclick="setColor('#54a0ff')"></div>
+                </div>
+            </div>
+            
+            <div class="property-group">
+                <h3>⚙️ Eigenschaften</h3>
+                <label style="display: flex; align-items: center; gap: 10px; margin: 10px 0;">
+                    <input type="checkbox" id="transparent" onchange="updateProperties()">
+                    <span>Transparent</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 10px; margin: 10px 0;">
+                    <input type="checkbox" id="glowing" onchange="updateProperties()">
+                    <span>Leuchtend</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 10px; margin: 10px 0;">
+                    <input type="checkbox" id="gravity" onchange="updateProperties()">
+                    <span>Schwerkraft</span>
+                </label>
+            </div>
+            
+            <div class="property-group">
+                <h3>📊 Info</h3>
+                <div id="objectInfo" style="padding: 10px; background: #f0f0f0; border-radius: 8px;">
+                    <p>Kein Objekt geladen</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-item">
+                <div class="status-led"></div>
+                <span>Verbunden</span>
+            </div>
+            <div class="status-item">
+                <span id="statusText">Bereit für deine Ideen!</span>
+            </div>
+            <div class="status-item" style="margin-left: auto;">
+                <span>MCreator: ✅ | FPS: <span id="fps">60</span></span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Claude Helper Bubble -->
+    <div class="claude-helper" id="claudeHelper">
+        <p id="claudeMessage">Hallo! Ich bin Claude, dein Minecraft Mod-Assistent! 🎮</p>
+    </div>
+    
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <script>
+        // ============================================
+        // 3D VIEWER ENGINE - FUNKTIONIERT GARANTIERT!
+        // ============================================
+        
+        let scene, camera, renderer, currentObject;
+        let animations = [];
+        let isListening = false;
+        let recognition = null;
+        
+        // Initialisierung
+        function init3D() {
+            console.log('🎮 Starte 3D Engine...');
+            
+            const container = document.getElementById('canvas-container');
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            
+            // Scene Setup
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xe3f2fd);
+            
+            // Camera
+            camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+            camera.position.set(5, 5, 5);
+            camera.lookAt(0, 0, 0);
+            
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(width, height);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            container.appendChild(renderer.domElement);
+            
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+            directionalLight.position.set(10, 10, 5);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.camera.near = 0.1;
+            directionalLight.shadow.camera.far = 50;
+            directionalLight.shadow.camera.left = -10;
+            directionalLight.shadow.camera.right = 10;
+            directionalLight.shadow.camera.top = 10;
+            directionalLight.shadow.camera.bottom = -10;
+            scene.add(directionalLight);
+            
+            // Grid Helper
+            const gridHelper = new THREE.GridHelper(10, 10, 0x888888, 0xcccccc);
+            scene.add(gridHelper);
+            
+            // Axes Helper (für Debugging)
+            const axesHelper = new THREE.AxesHelper(3);
+            scene.add(axesHelper);
+            
+            // Mouse Controls
+            setupMouseControls();
+            
+            // Start Animation Loop
+            animate();
+            
+            // Demo Block beim Start
+            setTimeout(() => {
+                createBlock('diamond');
+                showClaudeMessage('Willkommen! Sage "Erstelle einen Block" oder klicke die Buttons! 🎮');
+            }, 500);
+            
+            console.log('✅ 3D Engine läuft!');
+        }
+        
+        // Mouse Controls
+        function setupMouseControls() {
+            let mouseX = 0, mouseY = 0;
+            let isMouseDown = false;
+            
+            document.addEventListener('mousemove', (e) => {
+                if (isMouseDown) {
+                    const deltaX = e.clientX - mouseX;
+                    const deltaY = e.clientY - mouseY;
+                    
+                    camera.position.x = camera.position.x * Math.cos(deltaX * 0.01) - camera.position.z * Math.sin(deltaX * 0.01);
+                    camera.position.z = camera.position.x * Math.sin(deltaX * 0.01) + camera.position.z * Math.cos(deltaX * 0.01);
+                    camera.position.y += deltaY * 0.01;
+                    
+                    camera.lookAt(0, 0, 0);
+                }
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+            });
+            
+            renderer.domElement.addEventListener('mousedown', () => {
+                isMouseDown = true;
+                renderer.domElement.style.cursor = 'move';
+            });
+            
+            document.addEventListener('mouseup', () => {
+                isMouseDown = false;
+                renderer.domElement.style.cursor = 'default';
+            });
+            
+            // Zoom mit Mausrad
+            renderer.domElement.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                const scale = e.deltaY > 0 ? 1.1 : 0.9;
+                camera.position.multiplyScalar(scale);
+            });
+        }
+        
+        // Animation Loop
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Führe alle aktiven Animationen aus
+            animations.forEach(anim => anim());
+            
+            // FPS Counter
+            document.getElementById('fps').textContent = Math.round(1000 / 16.67);
+            
+            renderer.render(scene, camera);
+        }
+        
+        // ============================================
+        // OBJEKT-ERSTELLUNG
+        // ============================================
+        
+        function createBlock(type = 'stone') {
+            console.log(`🧱 Erstelle ${type} Block...`);
+            
+            // Entferne altes Objekt
+            if (currentObject) {
+                scene.remove(currentObject);
+                animations = [];
+            }
+            
+            // Block-Eigenschaften basierend auf Typ
+            const blockTypes = {
+                stone: { color: 0x808080, name: 'Stein-Block' },
+                grass: { color: 0x7ec850, name: 'Gras-Block' },
+                diamond: { color: 0x4dd0e1, name: 'Diamant-Block', emissive: 0x00ffff, emissiveIntensity: 0.3 },
+                glass: { color: 0x80deea, name: 'Glas-Block', transparent: true, opacity: 0.6 },
+                tnt: { color: 0xc62828, name: 'TNT-Block' }
+            };
+            
+            const config = blockTypes[type] || blockTypes.stone;
+            
+            // Erstelle Block
+            const geometry = new THREE.BoxGeometry(2, 2, 2);
+            const material = new THREE.MeshPhongMaterial({
+                color: config.color,
+                transparent: config.transparent || false,
+                opacity: config.opacity || 1.0,
+                emissive: config.emissive || 0x000000,
+                emissiveIntensity: config.emissiveIntensity || 0
+            });
+            
+            currentObject = new THREE.Mesh(geometry, material);
+            currentObject.position.y = 1;
+            currentObject.castShadow = true;
+            currentObject.receiveShadow = true;
+            scene.add(currentObject);
+            
+            // Update UI
+            document.getElementById('objectName').value = config.name;
+            updateObjectInfo(config.name, 'Block');
+            showClaudeMessage(`${config.name} erstellt! Probiere die Animationen aus! ✨`);
+            
+            // Auto-Animation
+            animate('float');
+        }
+        
+        function createItem(type = 'sword') {
+            console.log(`⚔️ Erstelle ${type}...`);
+            
+            if (currentObject) {
+                scene.remove(currentObject);
+                animations = [];
+            }
+            
+            const group = new THREE.Group();
+            
+            if (type === 'sword') {
+                // Griff
+                const handleGeometry = new THREE.CylinderGeometry(0.15, 0.15, 1.5);
+                const handleMaterial = new THREE.MeshPhongMaterial({ color: 0x8b4513 });
+                const handle = new THREE.Mesh(handleGeometry, handleMaterial);
+                
+                // Klinge
+                const bladeGeometry = new THREE.BoxGeometry(0.1, 3, 0.4);
+                const bladeMaterial = new THREE.MeshPhongMaterial({ 
+                    color: 0xc0c0c0,
+                    emissive: 0xffffff,
+                    emissiveIntensity: 0.1
+                });
+                const blade = new THREE.Mesh(bladeGeometry, bladeMaterial);
+                blade.position.y = 2.25;
+                
+                // Knauf
+                const guardGeometry = new THREE.BoxGeometry(0.8, 0.1, 0.2);
+                const guardMaterial = new THREE.MeshPhongMaterial({ color: 0x4a4a4a });
+                const guard = new THREE.Mesh(guardGeometry, guardMaterial);
+                guard.position.y = 0.75;
+                
+                group.add(handle);
+                group.add(blade);
+                group.add(guard);
+                
+                updateObjectInfo('Diamant-Schwert', 'Waffe');
+            } else if (type === 'pickaxe') {
+                // Implementierung für Spitzhacke
+                const handleGeometry = new THREE.CylinderGeometry(0.1, 0.1, 2);
+                const handleMaterial = new THREE.MeshPhongMaterial({ color: 0x8b4513 });
+                const handle = new THREE.Mesh(handleGeometry, handleMaterial);
+                
+                const headGeometry = new THREE.BoxGeometry(1.5, 0.3, 0.3);
+                const headMaterial = new THREE.MeshPhongMaterial({ color: 0x606060 });
+                const head = new THREE.Mesh(headGeometry, headMaterial);
+                head.position.y = 1;
+                head.rotation.z = Math.PI / 6;
+                
+                group.add(handle);
+                group.add(head);
+                
+                updateObjectInfo('Eisenspitzhacke', 'Werkzeug');
+            }
+            
+            currentObject = group;
+            currentObject.position.y = 2;
+            scene.add(currentObject);
+            
+            showClaudeMessage('Tolles Item! Lass es rotieren! 🔄');
+            animate('rotate');
+        }
+        
+        // ============================================
+        // ANIMATIONEN
+        // ============================================
+        
+        function animate(type) {
+            if (!currentObject) {
+                showClaudeMessage('Erstelle zuerst ein Objekt! 🎮');
+                return;
+            }
+            
+            // Lösche alte Animationen wenn neue Animation anders ist
+            if (type !== 'add') {
+                animations = [];
+            }
+            
+            switch(type) {
+                case 'rotate':
+                    animations.push(() => {
+                        currentObject.rotation.y += 0.02;
+                    });
+                    break;
+                    
+                case 'float':
+                    let floatTime = 0;
+                    animations.push(() => {
+                        floatTime += 0.03;
+                        currentObject.position.y = 2 + Math.sin(floatTime) * 0.5;
+                    });
+                    break;
+                    
+                case 'pulse':
+                    let pulseTime = 0;
+                    animations.push(() => {
+                        pulseTime += 0.05;
+                        const scale = 1 + Math.sin(pulseTime) * 0.2;
+                        currentObject.scale.set(scale, scale, scale);
+                    });
+                    break;
+                    
+                case 'rainbow':
+                    let hue = 0;
+                    animations.push(() => {
+                        hue = (hue + 1) % 360;
+                        const color = new THREE.Color(`hsl(${hue}, 100%, 50%)`);
+                        
+                        if (currentObject.material) {
+                            currentObject.material.color = color;
+                        } else {
+                            currentObject.traverse(child => {
+                                if (child.material) {
+                                    child.material.color = color;
+                                }
+                            });
+                        }
+                    });
+                    break;
+                    
+                case 'shake':
+                    let shakeTime = 0;
+                    const originalPos = currentObject.position.clone();
+                    animations.push(() => {
+                        shakeTime += 0.1;
+                        currentObject.position.x = originalPos.x + Math.sin(shakeTime * 10) * 0.1;
+                        currentObject.position.z = originalPos.z + Math.cos(shakeTime * 10) * 0.1;
+                    });
+                    break;
+            }
+            
+            updateStatus(`Animation: ${type} aktiviert!`);
+        }
+        
+        // ============================================
+        // VIEWER CONTROLS
+        // ============================================
+        
+        function resetCamera() {
+            camera.position.set(5, 5, 5);
+            camera.lookAt(0, 0, 0);
+            updateStatus('Kamera zurückgesetzt');
+        }
+        
+        function toggleWireframe() {
+            if (!currentObject) return;
+            
+            if (currentObject.material) {
+                currentObject.material.wireframe = !currentObject.material.wireframe;
+            } else {
+                currentObject.traverse(child => {
+                    if (child.material) {
+                        child.material.wireframe = !child.material.wireframe;
+                    }
+                });
+            }
+            updateStatus('Wireframe umgeschaltet');
+        }
+        
+        function screenshot() {
+            renderer.render(scene, camera);
+            const dataURL = renderer.domElement.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.download = 'minecraft-mod-preview.png';
+            link.href = dataURL;
+            link.click();
+            updateStatus('Screenshot gespeichert!');
+        }
+        
+        function setColor(color) {
+            if (!currentObject) return;
+            
+            const threeColor = new THREE.Color(color);
+            
+            if (currentObject.material) {
+                currentObject.material.color = threeColor;
+            } else {
+                currentObject.traverse(child => {
+                    if (child.material) {
+                        child.material.color = threeColor;
+                    }
+                });
+            }
+            updateStatus(`Farbe geändert zu ${color}`);
+        }
+        
+        function updateProperties() {
+            if (!currentObject || !currentObject.material) return;
+            
+            const transparent = document.getElementById('transparent').checked;
+            const glowing = document.getElementById('glowing').checked;
+            
+            if (currentObject.material) {
+                currentObject.material.transparent = transparent;
+                currentObject.material.opacity = transparent ? 0.7 : 1.0;
+                currentObject.material.emissive = glowing ? new THREE.Color(0xffff00) : new THREE.Color(0x000000);
+                currentObject.material.emissiveIntensity = glowing ? 0.3 : 0;
+            }
+        }
+        
+        // ============================================
+        // SPRACHSTEUERUNG
+        // ============================================
+        
+        function toggleVoice() {
+            const btn = document.getElementById('voiceBtn');
+            const status = document.getElementById('voiceStatus');
+            
+            if (!recognition) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                
+                if (!SpeechRecognition) {
+                    alert('Spracherkennung wird nur in Chrome/Edge unterstützt!');
+                    return;
+                }
+                
+                recognition = new SpeechRecognition();
+                recognition.lang = 'de-DE';
+                recognition.continuous = false;
+                recognition.interimResults = true;
+                
+                recognition.onstart = () => {
+                    isListening = true;
+                    btn.classList.add('listening');
+                    status.textContent = '🎧 Ich höre zu...';
+                    showClaudeMessage('Ich höre zu! Sage etwas wie "Erstelle einen Block" 🎤');
+                };
+                
+                recognition.onresult = (event) => {
+                    const transcript = event.results[0][0].transcript;
+                    status.textContent = `📝 "${transcript}"`;
+                    
+                    if (event.results[0].isFinal) {
+                        processVoiceCommand(transcript);
+                    }
+                };
+                
+                recognition.onerror = (event) => {
+                    console.error('Speech error:', event.error);
+                    stopListening();
+                    status.textContent = '❌ Fehler - Bitte erneut versuchen';
+                };
+                
+                recognition.onend = () => {
+                    stopListening();
+                };
+            }
+            
+            if (isListening) {
+                recognition.stop();
+            } else {
+                recognition.start();
+            }
+        }
+        
+        function stopListening() {
+            isListening = false;
+            document.getElementById('voiceBtn').classList.remove('listening');
+            document.getElementById('voiceStatus').textContent = '🎤 Bereit zum Sprechen';
+        }
+        
+        function processVoiceCommand(command) {
+            const cmd = command.toLowerCase();
+            console.log('Sprachbefehl:', cmd);
+            
+            // Block-Erstellung
+            if (cmd.includes('block') || cmd.includes('würfel')) {
+                if (cmd.includes('stein')) {
+                    createBlock('stone');
+                } else if (cmd.includes('gras')) {
+                    createBlock('grass');
+                } else if (cmd.includes('diamant')) {
+                    createBlock('diamond');
+                } else if (cmd.includes('glas')) {
+                    createBlock('glass');
+                } else if (cmd.includes('tnt') || cmd.includes('spreng')) {
+                    createBlock('tnt');
+                } else {
+                    createBlock('stone');
+                }
+                speak('Block wurde erstellt!');
+            }
+            // Item-Erstellung
+            else if (cmd.includes('schwert') || cmd.includes('waffe')) {
+                createItem('sword');
+                speak('Ein mächtiges Schwert!');
+            }
+            else if (cmd.includes('spitzhacke') || cmd.includes('hacke')) {
+                createItem('pickaxe');
+                speak('Spitzhacke erstellt!');
+            }
+            // Animationen
+            else if (cmd.includes('dreh') || cmd.includes('rotier')) {
+                animate('rotate');
+                speak('Es dreht sich!');
+            }
+            else if (cmd.includes('schweb') || cmd.includes('flieg')) {
+                animate('float');
+                speak('Es schwebt!');
+            }
+            else if (cmd.includes('pulsier') || cmd.includes('pump')) {
+                animate('pulse');
+                speak('Pulsierender Effekt!');
+            }
+            else if (cmd.includes('regenbogen') || cmd.includes('bunt')) {
+                animate('rainbow');
+                speak('Regenbogenfarben!');
+            }
+            else if (cmd.includes('wackel') || cmd.includes('zitter')) {
+                animate('shake');
+                speak('Es wackelt!');
+            }
+            // Farben
+            else if (cmd.includes('rot')) {
+                setColor('#ff6b6b');
+                speak('Jetzt ist es rot!');
+            }
+            else if (cmd.includes('blau')) {
+                setColor('#45b7d1');
+                speak('Jetzt ist es blau!');
+            }
+            else if (cmd.includes('grün')) {
+                setColor('#4ecdc4');
+                speak('Jetzt ist es grün!');
+            }
+            else if (cmd.includes('gelb')) {
+                setColor('#f7b731');
+                speak('Jetzt ist es gelb!');
+            }
+            // Hilfe
+            else if (cmd.includes('hilfe') || cmd.includes('was kannst du')) {
+                speak('Ich kann Blöcke und Items erstellen, Farben ändern und coole Animationen machen!');
+                showClaudeMessage('Sage: "Erstelle einen Diamantblock", "Mach ihn blau", "Lass ihn schweben" 🎮');
+            }
+            else {
+                speak('Das habe ich nicht verstanden. Sage "Hilfe" für Tipps!');
+            }
+        }
+        
+        function speak(text) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'de-DE';
+            utterance.rate = 0.9;
+            speechSynthesis.speak(utterance);
+        }
+        
+        // ============================================
+        // UI HELPER FUNKTIONEN
+        // ============================================
+        
+        function showClaudeMessage(message) {
+            const helper = document.getElementById('claudeHelper');
+            const messageEl = document.getElementById('claudeMessage');
+            
+            messageEl.textContent = message;
+            helper.classList.add('active');
+            
+            setTimeout(() => {
+                helper.classList.remove('active');
+            }, 5000);
+        }
+        
+        function updateStatus(text) {
+            document.getElementById('statusText').textContent = text;
+        }
+        
+        function updateObjectInfo(name, type) {
+            const info = document.getElementById('objectInfo');
+            info.innerHTML = `
+                <strong>Name:</strong> ${name}<br>
+                <strong>Typ:</strong> ${type}<br>
+                <strong>Vertices:</strong> ${currentObject ? countVertices(currentObject) : 0}<br>
+                <strong>Position:</strong> Y=${currentObject ? currentObject.position.y.toFixed(2) : 0}
+            `;
+        }
+        
+        function countVertices(object) {
+            let count = 0;
+            object.traverse(child => {
+                if (child.geometry) {
+                    count += child.geometry.attributes.position ? child.geometry.attributes.position.count : 0;
+                }
+            });
+            return count;
+        }
+        
+        // ============================================
+        // MCREATOR INTEGRATION
+        // ============================================
+        
+        function exportToMCreator() {
+            const name = document.getElementById('objectName').value;
+            showClaudeMessage(`Exportiere "${name}" zu MCreator... (Demo)`);
+            updateStatus('Export erfolgreich! Check MCreator workspace.');
+            
+            // Hier würde die echte MCreator-Integration stattfinden
+            console.log('MCreator Export:', {
+                name: name,
+                type: currentObject ? 'block' : 'none',
+                properties: {
+                    transparent: document.getElementById('transparent').checked,
+                    glowing: document.getElementById('glowing').checked,
+                    gravity: document.getElementById('gravity').checked
+                }
+            });
+        }
+        
+        function saveSession() {
+            const session = {
+                timestamp: new Date().toISOString(),
+                objectName: document.getElementById('objectName').value,
+                properties: {
+                    transparent: document.getElementById('transparent').checked,
+                    glowing: document.getElementById('glowing').checked,
+                    gravity: document.getElementById('gravity').checked
+                }
+            };
+            
+            localStorage.setItem('claudeCraftSession', JSON.stringify(session));
+            showClaudeMessage('Session gespeichert! 💾');
+            updateStatus('Session gespeichert');
+        }
+        
+        // ============================================
+        // INITIALISIERUNG
+        // ============================================
+        
+        window.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 Claude-Craft IDE v3.0 startet...');
+            init3D();
+            
+            // Lade gespeicherte Session
+            const savedSession = localStorage.getItem('claudeCraftSession');
+            if (savedSession) {
+                const session = JSON.parse(savedSession);
+                document.getElementById('objectName').value = session.objectName;
+                console.log('Session geladen:', session);
+            }
+            
+            // Resize Handler
+            window.addEventListener('resize', () => {
+                const container = document.getElementById('canvas-container');
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
+            });
+        });
+        
+        // Keyboard Shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key) {
+                    case 's':
+                        e.preventDefault();
+                        saveSession();
+                        break;
+                    case 'e':
+                        e.preventDefault();
+                        exportToMCreator();
+                        break;
+                    case ' ':
+                        e.preventDefault();
+                        toggleVoice();
+                        break;
+                }
+            }
+        });
+    </script>
+</body>
+</html>

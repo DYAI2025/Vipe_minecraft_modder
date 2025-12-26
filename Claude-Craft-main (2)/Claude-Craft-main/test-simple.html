@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Claude-Craft Test</title>
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+            background: rgba(255,255,255,0.1);
+            padding: 40px;
+            border-radius: 20px;
+        }
+        h1 { font-size: 48px; }
+        button {
+            padding: 20px 40px;
+            font-size: 20px;
+            background: white;
+            color: #764ba2;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover {
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 Claude-Craft</h1>
+        <p>Wenn du das siehst, funktioniert Electron!</p>
+        
+        <button onclick="testJS()">Test JavaScript</button>
+        <button onclick="testElectron()">Test Electron APIs</button>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        function testJS() {
+            document.getElementById('result').innerHTML = 
+                '<p style="color: #4CAF50;">✅ JavaScript funktioniert!</p>';
+        }
+        
+        function testElectron() {
+            if (typeof require !== 'undefined') {
+                const { ipcRenderer } = require('electron');
+                document.getElementById('result').innerHTML = 
+                    '<p style="color: #4CAF50;">✅ Electron APIs verfügbar!</p>';
+            } else {
+                document.getElementById('result').innerHTML = 
+                    '<p style="color: #ff6b6b;">❌ Electron APIs nicht verfügbar!</p>';
+            }
+        }
+        
+        // Auto-Test
+        console.log('Test page loaded!');
+        document.getElementById('result').innerHTML = 
+            '<p>Current location: ' + window.location.href + '</p>';
+    </script>
+</body>
+</html>

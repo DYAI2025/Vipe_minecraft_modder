@@ -1,0 +1,55 @@
+import type { SettingsConfig } from "./index.js";
+
+export const DEFAULT_SETTINGS: SettingsConfig = {
+  schemaVersion: 1,
+  stt: {
+    provider: "livekit",
+    language: "de-DE",
+    sampleRateHz: 16000,
+    interimResults: true,
+    maxUtteranceMs: 120000,
+    endpointingMs: 800,
+    providerConfig: {
+      provider: "livekit",
+      endpointUrl: "https://YOUR_STT_ENDPOINT",
+      apiKeyRef: "secret:livekit_api_key",
+      model: "default",
+    },
+  },
+  llm: {
+    providerConfig: {
+      provider: "openai_compatible",
+      baseUrl: "http://127.0.0.1:11434/v1",
+      apiKeyRef: "secret:llm_api_key",
+      model: "qwen2.5:7b-instruct",
+      requestTimeoutMs: 60000,
+      temperature: 0.2,
+      maxTokens: 2048,
+      jsonMode: "strict",
+    },
+    defaultMode: "actions_only",
+  },
+  safety: {
+    allowPatchMode: true,
+    requireHumanReviewForPatches: true,
+    patchWhitelistGlobs: [
+      "templates/fabric-1.20.1/src/main/java/**",
+      "templates/fabric-1.20.1/src/main/resources/**",
+      "generated/**",
+    ],
+    denylistRegexes: [
+      "\\bRuntime\\.exec\\b",
+      "\\bProcessBuilder\\b",
+      "\\bjava\\.net\\b",
+      "\\bsocket\\b",
+      "\\bFiles\\.write\\b",
+      "\\bFileOutputStream\\b",
+    ],
+    maxPatchFiles: 10,
+    maxPatchBytes: 200000,
+  },
+  ui: {
+    kidMode: true,
+    showDevDetails: false,
+  },
+};

@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude-Craft IDE 🎮</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Fix für 3D-Viewer Größe */
+        #3d-viewer {
+            width: 100% !important;
+            height: 400px !important;
+            min-height: 400px !important;
+            position: relative !important;
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+        }
+        
+        /* Voice Button deutlicher */
+        .voice-button {
+            animation: pulse-ready 2s infinite;
+        }
+        
+        @keyframes pulse-ready {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7); }
+            50% { box-shadow: 0 0 0 10px rgba(255, 107, 107, 0); }
+        }
+        
+        .voice-button.recording {
+            background: #ff4444 !important;
+            animation: pulse-recording 0.5s infinite;
+        }
+        
+        @keyframes pulse-recording {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        /* Debug Console */
+        #debug-console {
+            position: fixed;
+            bottom: 30px;
+            right: 10px;
+            width: 300px;
+            height: 200px;
+            background: rgba(0,0,0,0.8);
+            color: #0f0;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 11px;
+            overflow-y: auto;
+            border-radius: 5px;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <!-- Custom Titlebar -->
+    <div class="titlebar">
+        <div class="titlebar-drag">
+            <span class="app-title">🎮 Claude-Craft IDE - Minecraft Mod Creator</span>
+        </div>
+        <div class="titlebar-controls">
+            <button class="titlebar-btn minimize">─</button>
+            <button class="titlebar-btn maximize">□</button>
+            <button class="titlebar-btn close">✕</button>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Sidebar mit Tools -->
+        <div class="sidebar">
+            <div class="tool-section">
+                <h3>🎨 Blöcke</h3>
+                <button class="tool-btn" onclick="createBlock()">
+                    <span class="icon">🧱</span>
+                    Neuer Block
+                </button>
+                <button class="tool-btn" onclick="createDiamondBlock()">
+                    <span class="icon">💎</span>
+                    Diamant-Block
+                </button>
+            </div>
+            
+            <div class="tool-section">
+                <h3>⚔️ Items</h3>
+                <button class="tool-btn" onclick="createItem()">
+                    <span class="icon">🗡️</span>
+                    Neues Schwert
+                </button>
+            </div>
+            
+            <div class="tool-section">
+                <h3>✨ Animationen</h3>
+                <button class="tool-btn" onclick="startRotation()">
+                    <span class="icon">🔄</span>
+                    Rotieren
+                </button>
+                <button class="tool-btn" onclick="startFloating()">
+                    <span class="icon">☁️</span>
+                    Schweben
+                </button>
+                <button class="tool-btn" onclick="startRainbow()">
+                    <span class="icon">🌈</span>
+                    Regenbogen
+                </button>
+            </div>
+
+            <div class="voice-section">
+                <button id="voice-btn" class="voice-button" onclick="toggleVoice()">
+                    <span class="mic-icon">🎤</span>
+                    <span class="voice-text">KLICKEN = Sprechen</span>
+                </button>
+                <div class="voice-status" id="voice-status">Bereit...</div>
+                <div style="color: white; font-size: 12px; margin-top: 10px;">
+                    Sage: "Erstelle einen Block"<br>
+                    oder "Zeige mir ein Schwert"
+                </div>
+            </div>
+        </div>
+
+        <!-- Hauptarbeitsbereich -->
+        <div class="workspace">
+            <!-- 3D Viewer -->
+            <div class="viewer-container">
+                <div id="3d-viewer" class="three-viewer">
+                    <!-- 3D Content wird hier eingefügt -->
+                </div>
+                <div class="viewer-controls" style="position: absolute; top: 10px; right: 10px; z-index: 10;">
+                    <button onclick="resetCamera()">🔄 Reset</button>
+                    <button onclick="toggleWireframe()">📐 Wireframe</button>
+                </div>
+                <div class="viewer-info">
+                    <h3>3D Vorschau</h3>
+                    <p id="object-info">Klicke auf einen Button oder sprich einen Befehl!</p>
+                </div>
+            </div>
+
+            <!-- Properties Panel -->
+            <div class="properties-panel">
+                <h3>✨ Eigenschaften</h3>
+                <div id="properties-content">
+                    <p class="empty-state">Erstelle erst ein Objekt...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+        <div class="status-item">
+            <span class="status-icon">🟢</span>
+            <span id="connection-status">Bereit</span>
+        </div>
+        <div class="status-item">
+            <span id="current-project">Claude-Craft v2.0</span>
+        </div>
+        <div class="status-item">
+            <span id="claude-status">Claude hilft dir! 🤖</span>
+        </div>
+    </div>
+    
+    <!-- Debug Console -->
+    <div id="debug-console"></div>
+
+    <!-- Scripts in richtiger Reihenfolge -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
+    
+    <script>
+        // Debug Logger
+        const debugConsole = document.getElementById('debug-console');
+        function log(msg) {
+            const time = new Date().toLocaleTimeString();
+            debugConsole.innerHTML += `[${time}] ${msg}<br>`;
+            debugConsole.scrollTop = debugConsole.scrollHeight;
+            console.log(msg);
+        }
+        log('🚀 Claude-Craft startet...');
+    </script>
+    
+    <!-- Vereinfachter 3D Viewer (inline) -->
+    <script>
+        class Simple3DViewer {
+            constructor() {
+                this.scene = null;
+                this.camera = null;
+                this.renderer = null;
+                this.currentObject = null;
+                this.animations = [];
+                this.init();
+            }
+            
+            init() {
+                log('📦 Initialisiere 3D-Viewer...');
+                const container = document.getElementById('3d-viewer');
+                if (!container) {
+                    log('❌ Container nicht gefunden!');
+                    return;
+                }
+                
+                const width = container.clientWidth;
+                const height = 400; // Feste Höhe
+                
+                // Scene
+                this.scene = new THREE.Scene();
+                this.scene.background = new THREE.Color(0xe3f2fd);
+                
+                // Camera
+                this.camera = new THREE.PerspectiveCamera(75, width/height, 0.1, 1000);
+                this.camera.position.set(5, 5, 5);
+                this.camera.lookAt(0, 0, 0);
+                
+                // Renderer
+                this.renderer = new THREE.WebGLRenderer({ antialias: true });
+                this.renderer.setSize(width, height);
+                container.appendChild(this.renderer.domElement);
+                
+                // Lights
+                this.scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+                const dirLight = new THREE.DirectionalLight(0xffffff, 0.4);
+                dirLight.position.set(5, 10, 5);
+                this.scene.add(dirLight);
+                
+                // Grid
+                this.scene.add(new THREE.GridHelper(10, 10));
+                
+                log('✅ 3D-Viewer bereit!');
+                this.animate();
+            }
+            
+            createBlock(color = 0x4facfe) {
+                log(`🧱 Erstelle Block...`);
+                if (this.currentObject) {
+                    this.scene.remove(this.currentObject);
+                }
+                
+                const geometry = new THREE.BoxGeometry(2, 2, 2);
+                const material = new THREE.MeshPhongMaterial({ color: color });
+                this.currentObject = new THREE.Mesh(geometry, material);
+                this.currentObject.position.y = 1;
+                this.scene.add(this.currentObject);
+                
+                document.getElementById('object-info').textContent = 'Block erstellt!';
+                log('✅ Block hinzugefügt!');
+            }
+            
+            createItem() {
+                log(`⚔️ Erstelle Schwert...`);
+                if (this.currentObject) {
+                    this.scene.remove(this.currentObject);
+                }
+                
+                const group = new THREE.Group();
+                
+                // Griff
+                const handle = new THREE.BoxGeometry(0.3, 1.5, 0.3);
+                const handleMesh = new THREE.Mesh(handle, 
+                    new THREE.MeshPhongMaterial({ color: 0x8b4513 }));
+                
+                // Klinge
+                const blade = new THREE.BoxGeometry(0.15, 2.5, 0.4);
+                const bladeMesh = new THREE.Mesh(blade, 
+                    new THREE.MeshPhongMaterial({ color: 0xc0c0c0 }));
+                bladeMesh.position.y = 2;
+                
+                group.add(handleMesh);
+                group.add(bladeMesh);
+                
+                this.currentObject = group;
+                this.currentObject.position.y = 2;
+                this.scene.add(this.currentObject);
+                
+                document.getElementById('object-info').textContent = 'Schwert erstellt!';
+                log('✅ Schwert hinzugefügt!');
+            }
+            
+            startRotation() {
+                if (!this.currentObject) return;
+                log('🔄 Starte Rotation');
+                this.animations.push(() => {
+                    this.currentObject.rotation.y += 0.02;
+                });
+            }
+            
+            startFloating() {
+                if (!this.currentObject) return;
+                log('☁️ Starte Schweben');
+                let floatY = 0;
+                this.animations.push(() => {
+                    floatY += 0.05;
+                    this.currentObject.position.y = 2 + Math.sin(floatY) * 0.5;
+                });
+            }
+            
+            applyRainbow() {
+                if (!this.currentObject) return;
+                log('🌈 Aktiviere Regenbogen');
+                let hue = 0;
+                this.animations.push(() => {
+                    hue = (hue + 1) % 360;
+                    const color = new THREE.Color(`hsl(${hue}, 100%, 50%)`);
+                    if (this.currentObject.material) {
+                        this.currentObject.material.color = color;
+                    }
+                });
+            }
+            
+            animate() {
+                requestAnimationFrame(() => this.animate());
+                this.animations.forEach(anim => anim());
+                if (this.renderer) {
+                    this.renderer.render(this.scene, this.camera);
+                }
+            }
+        }
+        
+        // Global Instance
+        let viewer3D = null;
+        
+        // Warte bis DOM bereit
+        window.addEventListener('DOMContentLoaded', () => {
+            viewer3D = new Simple3DViewer();
+            log('✅ App vollständig geladen!');
+        });
+    </script>
+    
+    <!-- App Funktionen -->
+    <script>
+        // Button Funktionen
+        function createBlock() {
+            if (viewer3D) {
+                viewer3D.createBlock(0x888888); // Grau
+                speak('Ich habe einen Block erstellt!');
+            }
+        }
+        
+        function createDiamondBlock() {
+            if (viewer3D) {
+                viewer3D.createBlock(0x00ffff); // Türkis
+                speak('Ein Diamant-Block! Sehr wertvoll!');
+            }
+        }
+        
+        function createItem() {
+            if (viewer3D) {
+                viewer3D.createItem();
+                speak('Ein Schwert wurde erstellt!');
+            }
+        }
+        
+        function startRotation() {
+            if (viewer3D) viewer3D.startRotation();
+        }
+        
+        function startFloating() {
+            if (viewer3D) viewer3D.startFloating();
+        }
+        
+        function startRainbow() {
+            if (viewer3D) viewer3D.applyRainbow();
+        }
+        
+        function resetCamera() {
+            log('📷 Reset Camera');
+        }
+        
+        function toggleWireframe() {
+            log('📐 Toggle Wireframe');
+        }
+        
+        // Speech
+        function speak(text) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'de-DE';
+            speechSynthesis.speak(utterance);
+            document.getElementById('claude-status').textContent = text;
+        }
+        
+        // Voice Recognition
+        let recognition = null;
+        let isListening = false;
+        
+        function toggleVoice() {
+            const btn = document.getElementById('voice-btn');
+            const status = document.getElementById('voice-status');
+            
+            if (!recognition) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                if (!SpeechRecognition) {
+                    alert('Spracherkennung nicht verfügbar! Nutze Chrome!');
+                    return;
+                }
+                
+                recognition = new SpeechRecognition();
+                recognition.lang = 'de-DE';
+                recognition.continuous = false;
+                recognition.interimResults = true;
+                
+                recognition.onstart = () => {
+                    isListening = true;
+                    btn.classList.add('recording');
+                    status.textContent = '🎤 Höre zu...';
+                    log('🎤 Spracherkennung aktiv');
+                };
+                
+                recognition.onresult = (event) => {
+                    const transcript = event.results[0][0].transcript;
+                    status.textContent = transcript;
+                    
+                    if (event.results[0].isFinal) {
+                        log(`Erkannt: "${transcript}"`);
+                        processVoiceCommand(transcript);
+                    }
+                };
+                
+                recognition.onerror = (err) => {
+                    log(`❌ Fehler: ${err.error}`);
+                    stopListening();
+                };
+                
+                recognition.onend = () => {
+                    stopListening();
+                };
+            }
+            
+            if (isListening) {
+                recognition.stop();
+            } else {
+                recognition.start();
+            }
+        }
+        
+        function stopListening() {
+            isListening = false;
+            document.getElementById('voice-btn').classList.remove('recording');
+            document.getElementById('voice-status').textContent = 'Bereit...';
+        }
+        
+        function processVoiceCommand(command) {
+            const cmd = command.toLowerCase();
+            
+            if (cmd.includes('block')) {
+                createBlock();
+            } else if (cmd.includes('diamant')) {
+                createDiamondBlock();
+            } else if (cmd.includes('schwert') || cmd.includes('item')) {
+                createItem();
+            } else if (cmd.includes('dreh') || cmd.includes('rotier')) {
+                startRotation();
+            } else if (cmd.includes('schweb') || cmd.includes('flieg')) {
+                startFloating();
+            } else if (cmd.includes('regenbogen') || cmd.includes('bunt')) {
+                startRainbow();
+            } else if (cmd.includes('hilfe')) {
+                speak('Sage: Erstelle einen Block, oder: Zeige mir ein Schwert!');
+            } else {
+                speak('Das verstehe ich nicht. Sage: Hilfe!');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "name": "kidmodstudio-exporter",
+  "version": "0.1.0",
+  "private": true,
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "export": "node index.js --project ../project.example.json --template ./template --out ./out"
+  },
+  "dependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "fs-extra": "^11.2.0",
+    "minimist": "^1.2.8",
+    "pngjs": "^7.0.0"
+  }
+}

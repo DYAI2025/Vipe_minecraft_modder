@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Claude-Craft - Sprach-Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 50px;
+            text-align: center;
+        }
+        .test-button {
+            background: white;
+            color: #764ba2;
+            border: none;
+            padding: 20px 40px;
+            font-size: 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s;
+        }
+        .test-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        #output {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            min-height: 100px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎤 Claude-Craft Sprach-Test</h1>
+    <p>Teste die Sprachbefehle hier!</p>
+    
+    <button class="test-button" onclick="testCommand('Erstelle einen leuchtenden Diamantblock')">
+        "Erstelle einen leuchtenden Diamantblock"
+    </button>
+    
+    <button class="test-button" onclick="testCommand('Mache ihn größer und lass ihn schweben')">
+        "Mache ihn größer und lass ihn schweben"  
+    </button>
+    
+    <button class="test-button" onclick="testCommand('Zeige mir ein riesiges regenbogenfarbenes Schwert')">
+        "Zeige mir ein riesiges regenbogenfarbenes Schwert"
+    </button>
+    
+    <div id="output"></div>
+
+    <script>
+        // Lade die Voice Control
+        const script = document.createElement('script');
+        script.src = 'js/voice-control.js';
+        document.head.appendChild(script);
+        
+        function testCommand(command) {
+            const output = document.getElementById('output');
+            output.innerHTML = `<h3>Befehl: "${command}"</h3>`;
+            
+            // Simuliere Sprachbefehl
+            setTimeout(() => {
+                if (window.voiceControl) {
+                    window.voiceControl.processCommand(command);
+                    
+                    // Zeige extrahierte Eigenschaften
+                    const props = window.voiceControl.extractAdvancedProperties(command);
+                    output.innerHTML += `
+                        <h4>Erkannte Eigenschaften:</h4>
+                        <pre>${JSON.stringify(props, null, 2)}</pre>
+                    `;
+                } else {
+                    output.innerHTML += '<p>Voice Control wird geladen...</p>';
+                }
+            }, 500);
+        }
+        
+        // Claude's Stimme für Tests
+        function speak(text) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'de-DE';
+            utterance.rate = 0.95;
+            utterance.pitch = 1.1;
+            speechSynthesis.speak(utterance);
+        }
+        
+        // Begrüßung
+        setTimeout(() => {
+            speak("Willkommen zum Sprach-Test! Klicke auf die Buttons um zu sehen, wie ich deine Befehle verstehe!");
+        }, 1000);
+    </script>
+</body>
+</html>

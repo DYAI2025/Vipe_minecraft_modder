@@ -1,0 +1,20 @@
+{
+  "appId": "com.kidmodstudio.app",
+  "productName": "KidModStudio",
+  "directories": {
+    "output": "release"
+  },
+  "files": [
+    "dist/**/*",
+    "package.json"
+  ],
+  "linux": {
+    "target": ["AppImage", "deb"]
+  },
+  "mac": {
+    "target": ["dmg"]
+  },
+  "win": {
+    "target": ["nsis"]
+  }
+}

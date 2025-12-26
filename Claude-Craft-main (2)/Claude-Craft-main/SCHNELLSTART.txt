@@ -1,0 +1,34 @@
+# 🚀 SCHNELLSTART - Claude-Craft IDE
+
+## SOFORT STARTEN (3 Schritte):
+
+### 1️⃣ Node.js installieren (falls noch nicht vorhanden)
+   - Gehe zu: https://nodejs.org/
+   - Lade "LTS Version" herunter
+   - Installiere mit Standard-Einstellungen
+
+### 2️⃣ Claude-Craft starten
+   - **Doppelklick** auf: `start-claude-craft.bat`
+   - Beim ersten Start: 2-3 Minuten warten (Installation)
+   - Die App öffnet sich automatisch!
+
+### 3️⃣ Los geht's!
+   - Klicke auf **"🎤 Sprachbefehl"**
+   - Sage: **"Erstelle einen Regenbogen-Block"**
+   - Beobachte die Magie! ✨
+
+## 🎤 ERSTE SPRACHBEFEHLE ZUM AUSPROBIEREN:
+
+1. **"Erstelle einen Block"**
+2. **"Mache ihn blau"**
+3. **"Lass ihn schweben"**
+4. **"Zeige mir ein Schwert"**
+5. **"Mache es regenbogenfarben"**
+
+## ❓ PROBLEME?
+
+- **"Node.js nicht gefunden"**: Node.js von https://nodejs.org/ installieren
+- **Mikrofon funktioniert nicht**: Chrome/Edge Browser-Berechtigungen prüfen
+- **MCreator nicht verbunden**: Ist MCreator installiert?
+
+**Viel Spaß beim Modden! 🎮**

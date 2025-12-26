@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎮 Claude-Craft IDE v4.0 - ECHTES Minecraft Modding</title>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #2c3e50;
+            color: white;
+            overflow: hidden;
+        }
+        
+        .app-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr 350px;
+            grid-template-rows: 70px 1fr 40px;
+            height: 100vh;
+        }
+        
+        /* Header */
+        .header {
+            grid-column: 1 / -1;
+            background: linear-gradient(90deg, #8b5cf6, #ec4899);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        
+        .header h1 {
+            flex: 1;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .ai-status {
+            padding: 8px 15px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 20px;
+            font-size: 14px;
+        }
+        
+        .ai-status.connected {
+            background: #10b981;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            background: #1e293b;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .block-templates {
+            margin-bottom: 20px;
+        }
+        
+        .block-templates h3 {
+            color: #60a5fa;
+            margin-bottom: 15px;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+        
+        .template-btn {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: #334155;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .template-btn:hover {
+            background: #475569;
+            border-color: #60a5fa;
+            transform: translateX(5px);
+        }
+        
+        .template-btn .icon {
+            font-size: 20px;
+        }
+        
+        /* 3D Viewer */
+        .viewer-container {
+            background: #0f172a;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #render-canvas {
+            flex: 1;
+            background: linear-gradient(to bottom, #1e3a8a, #0f172a);
+            position: relative;
+        }
+        
+        .viewer-overlay {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+        
+        .viewer-info {
+            background: rgba(0,0,0,0.7);
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 12px;
+            pointer-events: auto;
+        }
+        
+        .viewer-controls {
+            display: flex;
+            gap: 5px;
+            pointer-events: auto;
+        }
+        
+        .viewer-controls button {
+            width: 35px;
+            height: 35px;
+            border: none;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .viewer-controls button:hover {
+            background: rgba(255,255,255,0.2);
+            transform: scale(1.1);
+        }
+        
+        /* Properties Panel - MINECRAFT STYLE! */
+        .properties-panel {
+            background: #1e293b;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .property-section {
+            background: #0f172a;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .property-section h3 {
+            color: #60a5fa;
+            font-size: 14px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .property-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .property-label {
+            flex: 1;
+            font-size: 13px;
+            color: #94a3b8;
+        }
+        
+        .property-input {
+            width: 120px;
+            padding: 6px 10px;
+            background: #334155;
+            border: 1px solid #475569;
+            border-radius: 6px;
+            color: white;
+            font-size: 13px;
+        }
+        
+        .property-input:focus {
+            outline: none;
+            border-color: #60a5fa;
+            background: #475569;
+        }
+        
+        .property-toggle {
+            position: relative;
+            width: 50px;
+            height: 24px;
+        }
+        
+        .property-toggle input {
+            display: none;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #475569;
+            border-radius: 24px;
+            transition: 0.3s;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+        
+        input:checked + .toggle-slider {
+            background: #10b981;
+        }
+        
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+        
+        .property-select {
+            width: 120px;
+            padding: 6px 10px;
+            background: #334155;
+            border: 1px solid #475569;
+            border-radius: 6px;
+            color: white;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        
+        /* Voice Input */
+        .voice-input-container {
+            position: fixed;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e293b;
+            border-radius: 50px;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+        
+        .voice-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 3px solid #60a5fa;
+            background: #1e293b;
+            color: #60a5fa;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .voice-btn:hover {
+            background: #334155;
+        }
+        
+        .voice-btn.active {
+            background: #ef4444;
+            border-color: #ef4444;
+            color: white;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 20px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        
+        .voice-text {
+            padding: 8px 15px;
+            background: #0f172a;
+            border-radius: 20px;
+            min-width: 250px;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        /* Status Bar */
+        .status-bar {
+            grid-column: 1 / -1;
+            background: #0f172a;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+        
+        .status-item {
+            margin-right: 20px;
+        }
+        
+        .status-item.active {
+            color: #10b981;
+        }
+        
+        /* Debug Console */
+        .debug-console {
+            position: fixed;
+            bottom: 100px;
+            right: 20px;
+            width: 300px;
+            max-height: 200px;
+            background: rgba(0,0,0,0.9);
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            color: #10b981;
+            overflow-y: auto;
+            display: none;
+        }
+        
+        .debug-console.active {
+            display: block;
+        }
+        
+        /* Tooltip */
+        .tooltip {
+            position: relative;
+        }
+        
+        .tooltip:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #000;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Header -->
+        <div class="header">
+            <h1>
+                <span>🎮</span>
+                Claude-Craft IDE v4.0
+                <span style="font-size: 14px; opacity: 0.8;">ECHTES Minecraft Modding</span>
+            </h1>
+            <div class="ai-status" id="aiStatus">
+                🤖 AI: Bereit (Moonshot/Local)
+            </div>
+        </div>
+        
+        <!-- Sidebar - Block Templates -->
+        <div class="sidebar">
+            <div class="block-templates">
+                <h3>⚡ Quick Templates</h3>
+                <button class="template-btn" onclick="createFromTemplate('ore')">
+                    <span class="icon">💎</span>
+                    <div>
+                        <div>Erz-Block</div>
+                        <div style="font-size: 11px; opacity: 0.7;">Drops, Härte, Seltenheit</div>
+                    </div>
+                </button>
+                <button class="template-btn" onclick="createFromTemplate('light')">
+                    <span class="icon">💡</span>
+                    <div>
+                        <div>Leucht-Block</div>
+                        <div style="font-size: 11px; opacity: 0.7;">Lichtlevel, Partikel</div>
+                    </div>
+                </button>
+                <button class="template-btn" onclick="createFromTemplate('plant')">
+                    <span class="icon">🌿</span>
+                    <div>
+                        <div>Pflanze</div>
+                        <div style="font-size: 11px; opacity: 0.7;">Wachstum, Bonemeal</div>
+                    </div>
+                </button>
+                <button class="template-btn" onclick="createFromTemplate('tool')">
+                    <span class="icon">⚔️</span>
+                    <div>
+                        <div>Werkzeug</div>
+                        <div style="font-size: 11px; opacity: 0.7;">Schaden, Haltbarkeit</div>
+                    </div>
+                </button>
+                <button class="template-btn" onclick="createFromTemplate('food')">
+                    <span class="icon">🍖</span>
+                    <div>
+                        <div>Nahrung</div>
+                        <div style="font-size: 11px; opacity: 0.7;">Hunger, Effekte</div>
+                    </div>
+                </button>
+                <button class="template-btn" onclick="createFromTemplate('explosive')">
+                    <span class="icon">🧨</span>
+                    <div>
+                        <div>Explosiv</div>
+                        <div style="font-size: 11px; opacity: 0.7;">Stärke, Auslöser</div>
+                    </div>
+                </button>
+            </div>
+            
+            <div class="block-templates">
+                <h3>🎨 Gespeicherte Mods</h3>
+                <div id="savedMods" style="font-size: 12px; opacity: 0.7;">
+                    Keine gespeicherten Mods
+                </div>
+            </div>
+        </div>
+        
+        <!-- 3D Viewer -->
+        <div class="viewer-container">
+            <div id="render-canvas">
+                <div class="viewer-overlay">
+                    <div class="viewer-info">
+                        <div id="objectName">Kein Objekt</div>
+                        <div id="vertexCount" style="opacity: 0.7; font-size: 11px;">0 vertices</div>
+                    </div>
+                    <div class="viewer-controls">
+                        <button onclick="resetCamera()" title="Reset">🔄</button>
+                        <button onclick="toggleWireframe()" title="Wireframe">📐</button>
+                        <button onclick="toggleAxis()" title="Achsen">📍</button>
+                        <button onclick="screenshot()" title="Screenshot">📸</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Properties Panel - MINECRAFT EIGENSCHAFTEN! -->
+        <div class="properties-panel">
+            <!-- Basis Eigenschaften -->
+            <div class="property-section">
+                <h3>📝 Basis Eigenschaften</h3>
+                <div class="property-row">
+                    <span class="property-label">Name (Registry)</span>
+                    <input type="text" class="property-input" id="blockName" value="custom_block" 
+                           onchange="updateProperty('name', this.value)">
+                </div>
+                <div class="property-row">
+                    <span class="property-label">Anzeigename</span>
+                    <input type="text" class="property-input" id="displayName" value="Custom Block"
+                           onchange="updateProperty('displayName', this.value)">
+                </div>
+                <div class="property-row">
+                    <span class="property-label">Creative Tab</span>
+                    <select class="property-select" id="creativeTab" onchange="updateProperty('tab', this.value)">
+                        <option value="building">Baumaterial</option>
+                        <option value="decorations">Dekoration</option>
+                        <option value="redstone">Redstone</option>
+                        <option value="combat">Kampf</option>
+                        <option value="tools">Werkzeuge</option>
+                        <option value="food">Nahrung</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Physik Eigenschaften -->
+            <div class="property-section">
+                <h3>⚙️ Physik & Verhalten</h3>
+                <div class="property-row">
+                    <span class="property-label">Härte</span>
+                    <input type="number" class="property-input" id="hardness" value="1.5" 
+                           min="0" max="50" step="0.5"
+                           onchange="updateProperty('hardness', this.value)">
+                </div>
+                <div class="property-row">
+                    <span class="property-label">Explosionswiderstand</span>
+                    <input type="number" class="property-input" id="resistance" value="6.0"
+                           min="0" max="3600" step="1"
+                           onchange="updateProperty('resistance', this.value)">
+                </div>
+                <div class="property-row">
+                    <span class="property-label">Abbau-Tool</span>
+                    <select class="property-select" id="harvestTool" onchange="updateProperty('tool', this.value)">
+                        <option value="none">Kein Tool</option>
+                        <option value="pickaxe">Spitzhacke</option>
+                        <option value="axe">Axt</option>
+                        <option value="shovel">Schaufel</option>
+                        <option value="hoe">Hacke</option>
+                    </select>
+                </div>
+                <div class="property-row">
+                    <span class="property-label">Tool-Level</span>
+                    <select class="property-select" id="harvestLevel" onchange="updateProperty('level', this.value)">
+                        <option value="0">Holz/Gold</option>
+                        <option value="1">Stein</option>
+                        <option value="2">Eisen</option>
+                        <option value="3">Diamant</option>
+                        <option value="4">Netherite</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Visuelle Eigenschaften -->
+            <div class="property-section">
+                <h3>🎨 Visuell & Licht</h3>
+                <div class="property-row">
+                    <span class="property-label">Lichtlevel</span>
+                    <input type="range" class="property-input" id="lightLevel" 
+                           min="0" max="15" value="0"
+                           onchange="updateProperty('light', this.value); this.nextElementSibling.textContent = this.value">
+                    <span style="margin-left: 10px; min-width: 20px;">0</span>
+                </div>
+                <div class="property-row">
+                    <span class="property-label">Transparenz</span>
+                    <label class="property-toggle">
+                        <input type="checkbox" id="transparent" onchange="updateProperty('transparent', this.checked)">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="property-row">
+                    <span class="property-label">Durchlässig</span>
+                    <label class="property-toggle">
+                        <input type="checkbox" id="passable" onchange="updateProperty('passable', this.checked)">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="property-row">
+                    <span class="property-label">Partikel-Effekt</span>
+                    <select class="property-select" id="particles" onchange="updateProperty('particles', this.value)">
+                        <option value="none">Keine</option>
+                        <option value="smoke">Rauch</option>
+                        <option value="flame">Flammen</option>
+                        <option value="portal">Portal</option>
+                        <option value="enchant">Verzauberung</option>
+                        <option value="bubble">Blasen</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Drops & Loot -->
+            <div class="property-section">
+                <h3>💎 Drops & Loot</h3>
+                <div class="property-row">
+                    <span class="property-label">Drop Item</span>
+                    <input type="text" class="property-input" id="dropItem" value="minecraft:diamond"
+                           onchange="updateProperty('drop', this.value)">
+                </div>
+                <div class="property-row">
+                    <span class="property-label">Drop Anzahl</span>
+                    <input type="number" class="property-input" id="dropCount" value="1"
+                           min="0" max="64" 
+                           onchange="updateProperty('dropCount', this.value)">
+                </div>
+                <div class="property-row">
+                    <span class="property-label">XP beim Abbau</span>
+                    <input type="number" class="property-input" id="xpDrop" value="0"
+                           min="0" max="100"
+                           onchange="updateProperty('xp', this.value)">
+                </div>
+            </div>
+            
+            <!-- Redstone -->
+            <div class="property-section">
+                <h3>🔴 Redstone</h3>
+                <div class="property-row">
+                    <span class="property-label">Redstone Power</span>
+                    <label class="property-toggle">
+                        <input type="checkbox" id="redstonePower" onchange="updateProperty('redstone', this.checked)">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="property-row">
+                    <span class="property-label">Power Level</span>
+                    <input type="range" class="property-input" id="powerLevel" 
+                           min="0" max="15" value="0"
+                           onchange="updateProperty('power', this.value); this.nextElementSibling.textContent = this.value">
+                    <span style="margin-left: 10px; min-width: 20px;">0</span>
+                </div>
+            </div>
+            
+            <!-- Export Buttons -->
+            <div style="margin-top: 20px;">
+                <button style="width: 100%; padding: 12px; background: #10b981; border: none; border-radius: 8px; color: white; cursor: pointer; margin-bottom: 10px;"
+                        onclick="exportToMCreator()">
+                    💾 Export zu MCreator
+                </button>
+                <button style="width: 100%; padding: 12px; background: #3b82f6; border: none; border-radius: 8px; color: white; cursor: pointer;"
+                        onclick="generateJavaCode()">
+                    ☕ Java Code generieren
+                </button>
+            </div>
+        </div>
+        
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <span class="status-item active">● 3D Engine: Aktiv</span>
+            <span class="status-item">FPS: <span id="fps">60</span></span>
+            <span class="status-item">Vertices: <span id="totalVertices">0</span></span>
+            <span class="status-item" style="margin-left: auto;">
+                F12 = Console | Strg+S = Speichern | Strg+E = Export
+            </span>
+        </div>
+    </div>
+    
+    <!-- Voice Input -->
+    <div class="voice-input-container">
+        <button class="voice-btn" id="voiceBtn" onclick="toggleVoice()">
+            🎤
+        </button>
+        <div class="voice-text" id="voiceText">
+            Klicke zum Sprechen oder tippe hier...
+        </div>
+    </div>
+    
+    <!-- Debug Console -->
+    <div class="debug-console" id="debugConsole"></div>
+    
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <script>
+        // ============================================
+        // GLOBALE VARIABLEN
+        // ============================================
+        
+        let scene, camera, renderer, currentObject;
+        let animations = [];
+        let blockProperties = {
+            name: 'custom_block',
+            displayName: 'Custom Block',
+            hardness: 1.5,
+            resistance: 6.0,
+            lightLevel: 0,
+            transparent: false,
+            passable: false,
+            tool: 'pickaxe',
+            level: 1,
+            drop: 'minecraft:diamond',
+            dropCount: 1,
+            xp: 0,
+            redstone: false,
+            powerLevel: 0,
+            particles: 'none'
+        };
+        
+        // ============================================
+        // 3D ENGINE - VERBESSERTE VERSION
+        // ============================================
+        
+        function init3D() {
+            console.log('🎮 Initialisiere 3D Engine...');
+            
+            const container = document.getElementById('render-canvas');
+            const rect = container.getBoundingClientRect();
+            
+            // Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x1e3a8a);
+            scene.fog = new THREE.Fog(0x1e3a8a, 10, 50);
+            
+            // Camera
+            camera = new THREE.PerspectiveCamera(
+                75,
+                rect.width / rect.height,
+                0.1,
+                1000
+            );
+            camera.position.set(5, 5, 5);
+            camera.lookAt(0, 0, 0);
+            
+            // Renderer mit Anti-Aliasing
+            renderer = new THREE.WebGLRenderer({ 
+                antialias: true,
+                alpha: true,
+                powerPreference: "high-performance"
+            });
+            renderer.setSize(rect.width, rect.height);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            container.appendChild(renderer.domElement);
+            
+            // Bessere Beleuchtung
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
+            directionalLight.position.set(10, 20, 10);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.mapSize.width = 2048;
+            directionalLight.shadow.mapSize.height = 2048;
+            directionalLight.shadow.camera.near = 0.5;
+            directionalLight.shadow.camera.far = 50;
+            scene.add(directionalLight);
+            
+            const pointLight = new THREE.PointLight(0x60a5fa, 0.5, 20);
+            pointLight.position.set(-5, 10, 0);
+            scene.add(pointLight);
+            
+            // Grid
+            const gridHelper = new THREE.GridHelper(20, 20, 0x444444, 0x222222);
+            scene.add(gridHelper);
+            
+            // Axes
+            const axesHelper = new THREE.AxesHelper(5);
+            scene.add(axesHelper);
+            
+            // Controls
+            setupControls();
+            
+            // Start
+            animate();
+            
+            // Demo Block
+            setTimeout(() => createFromTemplate('ore'), 100);
+            
+            log('✅ 3D Engine bereit!');
+        }
+        
+        function setupControls() {
+            let isDragging = false;
+            let previousMousePosition = { x: 0, y: 0 };
+            
+            renderer.domElement.addEventListener('mousedown', (e) => {
+                isDragging = true;
+            });
+            
+            renderer.domElement.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    const deltaMove = {
+                        x: e.offsetX - previousMousePosition.x,
+                        y: e.offsetY - previousMousePosition.y
+                    };
+                    
+                    const rotationSpeed = 0.005;
+                    
+                    // Rotate camera around center
+                    const spherical = new THREE.Spherical();
+                    spherical.setFromVector3(camera.position);
+                    spherical.theta -= deltaMove.x * rotationSpeed;
+                    spherical.phi += deltaMove.y * rotationSpeed;
+                    spherical.phi = Math.max(0.1, Math.min(Math.PI - 0.1, spherical.phi));
+                    camera.position.setFromSpherical(spherical);
+                    camera.lookAt(0, 0, 0);
+                }
+                
+                previousMousePosition = {
+                    x: e.offsetX,
+                    y: e.offsetY
+                };
+            });
+            
+            renderer.domElement.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+            
+            renderer.domElement.addEventListener('mouseleave', () => {
+                isDragging = false;
+            });
+            
+            // Zoom
+            renderer.domElement.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                const zoomSpeed = 0.1;
+                const scale = e.deltaY > 0 ? 1 + zoomSpeed : 1 - zoomSpeed;
+                camera.position.multiplyScalar(scale);
+            });
+        }
+        
+        let frameCount = 0;
+        let lastTime = performance.now();
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // FPS Counter
+            frameCount++;
+            const currentTime = performance.now();
+            if (currentTime >= lastTime + 1000) {
+                document.getElementById('fps').textContent = frameCount;
+                frameCount = 0;
+                lastTime = currentTime;
+            }
+            
+            // Animationen
+            animations.forEach(anim => anim());
+            
+            // Render
+            renderer.render(scene, camera);
+        }
+        
+        // ============================================
+        // BLOCK/ITEM ERSTELLUNG MIT TEMPLATES
+        // ============================================
+        
+        function createFromTemplate(template) {
+            log(`📦 Erstelle ${template} Template...`);
+            
+            // Clear old
+            if (currentObject) {
+                scene.remove(currentObject);
+                animations = [];
+            }
+            
+            switch(template) {
+                case 'ore':
+                    createOreBlock();
+                    break;
+                case 'light':
+                    createLightBlock();
+                    break;
+                case 'plant':
+                    createPlant();
+                    break;
+                case 'tool':
+                    createTool();
+                    break;
+                case 'food':
+                    createFood();
+                    break;
+                case 'explosive':
+                    createExplosive();
+                    break;
+                default:
+                    createBasicBlock();
+            }
+            
+            updateVertexCount();
+        }
+        
+        function createOreBlock() {
+            // Ore Block mit Partikeln
+            const geometry = new THREE.BoxGeometry(2, 2, 2);
+            const material = new THREE.MeshPhongMaterial({
+                color: 0x00ffff,
+                emissive: 0x004444,
+                emissiveIntensity: 0.3,
+                shininess: 100
+            });
+            
+            currentObject = new THREE.Mesh(geometry, material);
+            currentObject.position.y = 1;
+            currentObject.castShadow = true;
+            currentObject.receiveShadow = true;
+            scene.add(currentObject);
+            
+            // Partikel
+            const particleGeometry = new THREE.BufferGeometry();
+            const particleCount = 50;
+            const positions = new Float32Array(particleCount * 3);
+            
+            for (let i = 0; i < particleCount * 3; i += 3) {
+                positions[i] = (Math.random() - 0.5) * 3;
+                positions[i + 1] = Math.random() * 3;
+                positions[i + 2] = (Math.random() - 0.5) * 3;
+            }
+            
+            particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            const particleMaterial = new THREE.PointsMaterial({
+                color: 0x00ffff,
+                size: 0.1,
+                transparent: true,
+                opacity: 0.6
+            });
+            
+            const particles = new THREE.Points(particleGeometry, particleMaterial);
+            currentObject.add(particles);
+            
+            // Animation
+            animations.push(() => {
+                particles.rotation.y += 0.01;
+                currentObject.rotation.y += 0.005;
+            });
+            
+            // Update Properties
+            blockProperties = {
+                ...blockProperties,
+                name: 'mystic_ore',
+                displayName: 'Mystisches Erz',
+                hardness: 3.0,
+                resistance: 15.0,
+                tool: 'pickaxe',
+                level: 2,
+                drop: 'mystic_gem',
+                dropCount: 3,
+                xp: 10,
+                lightLevel: 7
+            };
+            
+            updatePropertiesUI();
+            log('✅ Erz-Block erstellt mit Partikeln!');
+        }
+        
+        function createLightBlock() {
+            const geometry = new THREE.BoxGeometry(2, 2, 2);
+            const material = new THREE.MeshPhongMaterial({
+                color: 0xffeb3b,
+                emissive: 0xffeb3b,
+                emissiveIntensity: 0.8,
+                transparent: true,
+                opacity: 0.9
+            });
+            
+            currentObject = new THREE.Mesh(geometry, material);
+            currentObject.position.y = 1;
+            scene.add(currentObject);
+            
+            // Glow Effect
+            const glowGeometry = new THREE.BoxGeometry(2.2, 2.2, 2.2);
+            const glowMaterial = new THREE.MeshBasicMaterial({
+                color: 0xffeb3b,
+                transparent: true,
+                opacity: 0.3
+            });
+            const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+            currentObject.add(glow);
+            
+            // Pulse Animation
+            let pulseTime = 0;
+            animations.push(() => {
+                pulseTime += 0.05;
+                const scale = 1 + Math.sin(pulseTime) * 0.1;
+                glow.scale.set(scale, scale, scale);
+                material.emissiveIntensity = 0.5 + Math.sin(pulseTime) * 0.3;
+            });
+            
+            blockProperties = {
+                ...blockProperties,
+                name: 'glow_stone_plus',
+                displayName: 'Verbesserter Glowstone',
+                lightLevel: 15,
+                transparent: true
+            };
+            
+            updatePropertiesUI();
+        }
+        
+        function createTool() {
+            const group = new THREE.Group();
+            
+            // Griff
+            const handleGeometry = new THREE.CylinderGeometry(0.1, 0.1, 2, 8);
+            const handleMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0x8b4513
+            });
+            const handle = new THREE.Mesh(handleGeometry, handleMaterial);
+            group.add(handle);
+            
+            // Klinge mit Glow
+            const bladeGeometry = new THREE.BoxGeometry(0.05, 3, 0.5);
+            const bladeMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0x00ffff,
+                emissive: 0x00ffff,
+                emissiveIntensity: 0.3,
+                shininess: 200
+            });
+            const blade = new THREE.Mesh(bladeGeometry, bladeMaterial);
+            blade.position.y = 2.5;
+            group.add(blade);
+            
+            // Energiefeld
+            const energyGeometry = new THREE.CylinderGeometry(0.3, 0.1, 3.5, 4, 1, true);
+            const energyMaterial = new THREE.MeshBasicMaterial({
+                color: 0x00ffff,
+                transparent: true,
+                opacity: 0.2,
+                side: THREE.DoubleSide
+            });
+            const energy = new THREE.Mesh(energyGeometry, energyMaterial);
+            energy.position.y = 2;
+            group.add(energy);
+            
+            currentObject = group;
+            currentObject.position.y = 2;
+            scene.add(currentObject);
+            
+            // Rotation
+            animations.push(() => {
+                currentObject.rotation.y += 0.02;
+                energy.rotation.y -= 0.05;
+            });
+            
+            log('✅ Energieschwert erstellt!');
+        }
+        
+        function createBasicBlock() {
+            const geometry = new THREE.BoxGeometry(2, 2, 2);
+            const material = new THREE.MeshPhongMaterial({
+                color: 0x4a5568
+            });
+            
+            currentObject = new THREE.Mesh(geometry, material);
+            currentObject.position.y = 1;
+            currentObject.castShadow = true;
+            currentObject.receiveShadow = true;
+            scene.add(currentObject);
+        }
+        
+        // ============================================
+        // PROPERTIES UPDATE
+        // ============================================
+        
+        function updateProperty(prop, value) {
+            blockProperties[prop] = value;
+            log(`⚙️ ${prop} = ${value}`);
+            
+            // Visual Updates
+            if (currentObject) {
+                switch(prop) {
+                    case 'transparent':
+                        if (currentObject.material) {
+                            currentObject.material.transparent = value;
+                            currentObject.material.opacity = value ? 0.7 : 1.0;
+                        }
+                        break;
+                    case 'light':
+                        if (currentObject.material) {
+                            const intensity = value / 15;
+                            currentObject.material.emissive = new THREE.Color(0xffff00);
+                            currentObject.material.emissiveIntensity = intensity * 0.5;
+                        }
+                        break;
+                }
+            }
+        }
+        
+        function updatePropertiesUI() {
+            // Update all UI elements with current properties
+            document.getElementById('blockName').value = blockProperties.name;
+            document.getElementById('displayName').value = blockProperties.displayName;
+            document.getElementById('hardness').value = blockProperties.hardness;
+            document.getElementById('resistance').value = blockProperties.resistance;
+            document.getElementById('lightLevel').value = blockProperties.lightLevel;
+            document.getElementById('transparent').checked = blockProperties.transparent;
+            document.getElementById('dropItem').value = blockProperties.drop;
+            document.getElementById('dropCount').value = blockProperties.dropCount;
+            document.getElementById('xpDrop').value = blockProperties.xp;
+            
+            document.getElementById('objectName').textContent = blockProperties.displayName;
+        }
+        
+        function updateVertexCount() {
+            if (!currentObject) return;
+            
+            let vertices = 0;
+            currentObject.traverse(child => {
+                if (child.geometry) {
+                    const pos = child.geometry.attributes.position;
+                    if (pos) vertices += pos.count;
+                }
+            });
+            
+            document.getElementById('vertexCount').textContent = `${vertices} vertices`;
+            document.getElementById('totalVertices').textContent = vertices;
+        }
+        
+        // ============================================
+        // VIEWER CONTROLS
+        // ============================================
+        
+        function resetCamera() {
+            camera.position.set(5, 5, 5);
+            camera.lookAt(0, 0, 0);
+        }
+        
+        function toggleWireframe() {
+            if (currentObject && currentObject.material) {
+                currentObject.material.wireframe = !currentObject.material.wireframe;
+            }
+        }
+        
+        function toggleAxis() {
+            const axes = scene.getObjectByName('axes');
+            if (axes) axes.visible = !axes.visible;
+        }
+        
+        function screenshot() {
+            renderer.render(scene, camera);
+            renderer.domElement.toBlob(blob => {
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.download = `${blockProperties.name}.png`;
+                link.href = url;
+                link.click();
+            });
+        }
+        
+        // ============================================
+        // EXPORT FUNKTIONEN
+        // ============================================
+        
+        function exportToMCreator() {
+            const mcreatorData = {
+                name: blockProperties.name,
+                displayName: blockProperties.displayName,
+                hardness: blockProperties.hardness,
+                resistance: blockProperties.resistance,
+                lightLevel: blockProperties.lightLevel,
+                transparent: blockProperties.transparent,
+                harvestTool: blockProperties.tool,
+                harvestLevel: blockProperties.level,
+                drops: [{
+                    item: blockProperties.drop,
+                    count: blockProperties.dropCount
+                }],
+                xpDrop: blockProperties.xp,
+                timestamp: new Date().toISOString()
+            };
+            
+            // Save to file
+            const blob = new Blob([JSON.stringify(mcreatorData, null, 2)], 
+                                 { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.download = `${blockProperties.name}.mcreator`;
+            link.href = url;
+            link.click();
+            
+            log('✅ Exportiert zu MCreator!');
+            speak('Block wurde exportiert!');
+        }
+        
+        function generateJavaCode() {
+            const javaCode = `
+package com.yourmod.blocks;
+
+import net.minecraft.block.Block;
+import net.minecraft.block.material.Material;
+import net.minecraft.creativetab.CreativeTabs;
+
+public class ${capitalize(blockProperties.name)} extends Block {
+    
+    public ${capitalize(blockProperties.name)}() {
+        super(Material.ROCK);
+        setUnlocalizedName("${blockProperties.name}");
+        setRegistryName("${blockProperties.name}");
+        setHardness(${blockProperties.hardness}F);
+        setResistance(${blockProperties.resistance}F);
+        setLightLevel(${blockProperties.lightLevel / 15}F);
+        setCreativeTab(CreativeTabs.BUILDING_BLOCKS);
+    }
+    
+    @Override
+    public boolean isOpaqueCube(IBlockState state) {
+        return ${!blockProperties.transparent};
+    }
+}`;
+            
+            // Create download
+            const blob = new Blob([javaCode], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.download = `${capitalize(blockProperties.name)}.java`;
+            link.href = url;
+            link.click();
+            
+            log('☕ Java Code generiert!');
+        }
+        
+        function capitalize(str) {
+            return str.charAt(0).toUpperCase() + str.slice(1);
+        }
+        
+        // ============================================
+        // AI SPRACHVERARBEITUNG (Vorbereitet für Moonshot)
+        // ============================================
+        
+        let isListening = false;
+        
+        function toggleVoice() {
+            const btn = document.getElementById('voiceBtn');
+            const text = document.getElementById('voiceText');
+            
+            if (isListening) {
+                // Stop
+                btn.classList.remove('active');
+                isListening = false;
+                text.textContent = 'Gestoppt';
+            } else {
+                // Start
+                btn.classList.add('active');
+                isListening = true;
+                text.textContent = '🎧 Höre zu...';
+                
+                // Simuliere AI Verarbeitung
+                setTimeout(() => {
+                    processAICommand("Erstelle einen leuchtenden Diamantblock mit Partikeln");
+                }, 2000);
+            }
+        }
+        
+        function processAICommand(text) {
+            log(`🤖 AI verarbeitet: "${text}"`);
+            document.getElementById('voiceText').textContent = text;
+            
+            // Keyword-basierte Erkennung (später durch echte AI ersetzen)
+            const lower = text.toLowerCase();
+            
+            if (lower.includes('diamant') || lower.includes('erz')) {
+                createFromTemplate('ore');
+                speak('Diamanterz erstellt!');
+            } else if (lower.includes('leucht') || lower.includes('licht')) {
+                createFromTemplate('light');
+                speak('Leuchtblock erstellt!');
+            } else if (lower.includes('schwert') || lower.includes('waffe')) {
+                createFromTemplate('tool');
+                speak('Energieschwert erstellt!');
+            } else if (lower.includes('rot')) {
+                if (currentObject && currentObject.material) {
+                    currentObject.material.color = new THREE.Color(0xff0000);
+                }
+                speak('Farbe geändert zu Rot!');
+            }
+            
+            isListening = false;
+            document.getElementById('voiceBtn').classList.remove('active');
+        }
+        
+        function speak(text) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'de-DE';
+            utterance.rate = 0.9;
+            speechSynthesis.speak(utterance);
+        }
+        
+        // ============================================
+        // DEBUG & LOGGING
+        // ============================================
+        
+        function log(message) {
+            console.log(message);
+            const debugConsole = document.getElementById('debugConsole');
+            const time = new Date().toLocaleTimeString();
+            debugConsole.innerHTML = `[${time}] ${message}<br>` + debugConsole.innerHTML;
+            
+            // Show console briefly
+            debugConsole.classList.add('active');
+            setTimeout(() => {
+                debugConsole.classList.remove('active');
+            }, 3000);
+        }
+        
+        // ============================================
+        // INITIALISIERUNG
+        // ============================================
+        
+        window.addEventListener('DOMContentLoaded', () => {
+            log('🚀 Claude-Craft v4.0 startet...');
+            init3D();
+            
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (e.ctrlKey) {
+                    switch(e.key) {
+                        case 's':
+                            e.preventDefault();
+                            localStorage.setItem('blockProperties', JSON.stringify(blockProperties));
+                            log('💾 Gespeichert!');
+                            break;
+                        case 'e':
+                            e.preventDefault();
+                            exportToMCreator();
+                            break;
+                    }
+                }
+                
+                // F12 toggle debug
+                if (e.key === 'F12') {
+                    e.preventDefault();
+                    document.getElementById('debugConsole').classList.toggle('active');
+                }
+            });
+            
+            // Load saved
+            const saved = localStorage.getItem('blockProperties');
+            if (saved) {
+                blockProperties = JSON.parse(saved);
+                updatePropertiesUI();
+                log('📂 Gespeicherte Eigenschaften geladen');
+            }
+        });
+        
+        // Window resize
+        window.addEventListener('resize', () => {
+            const container = document.getElementById('render-canvas');
+            const rect = container.getBoundingClientRect();
+            camera.aspect = rect.width / rect.height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(rect.width, rect.height);
+        });
+    </script>
+</body>
+</html>

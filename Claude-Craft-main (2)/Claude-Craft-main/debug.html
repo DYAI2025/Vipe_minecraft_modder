@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Claude-Craft Debug</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button {
+            padding: 15px 30px;
+            margin: 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background: #4CAF50;
+            color: white;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        button:active {
+            transform: scale(0.95);
+        }
+        .voice-btn {
+            background: #2196F3;
+            font-size: 20px;
+        }
+        .voice-btn.active {
+            background: #f44336;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        #3d-container {
+            width: 100%;
+            height: 400px;
+            background: #e0e0e0;
+            border: 2px solid #999;
+            position: relative;
+        }
+        #console {
+            background: #000;
+            color: #0f0;
+            padding: 10px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .status {
+            padding: 10px;
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Claude-Craft Debug & Test</h1>
+    
+    <div class="section">
+        <h2>📊 System-Status</h2>
+        <div id="status" class="status">Überprüfe System...</div>
+    </div>
+    
+    <div class="section">
+        <h2>🎤 Spracherkennung</h2>
+        <button class="voice-btn" id="voiceBtn" onclick="toggleVoice()">
+            🎤 KLICKEN zum Sprechen (nicht halten!)
+        </button>
+        <p><strong>Anleitung:</strong> EINMAL klicken = Start, nochmal klicken = Stop</p>
+        <div id="voiceStatus">Status: Bereit</div>
+        <div id="transcript" style="margin-top:10px; padding:10px; background:#f0f0f0;">
+            Erkannter Text erscheint hier...
+        </div>
+    </div>
+    
+    <div class="section">
+        <h2>🎮 Direkte Funktions-Tests</h2>
+        <button onclick="testCreateBlock()">🧱 Block erstellen</button>
+        <button onclick="testCreateItem()">⚔️ Item erstellen</button>
+        <button onclick="testAnimation()">✨ Animation starten</button>
+        <button onclick="testSpeech()">🔊 Claude spricht</button>
+    </div>
+    
+    <div class="section">
+        <h2>🎨 3D Viewer</h2>
+        <div id="3d-container"></div>
+    </div>
+    
+    <div class="section">
+        <h2>💻 Console Output</h2>
+        <div id="console"></div>
+    </div>
+
+    <!-- Three.js -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
+    
+    <script>
+        // Console Logger
+        const debugConsole = document.getElementById('console');
+        function log(msg, type = 'info') {
+            const time = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#f44' : type === 'success' ? '#4f4' : '#0ff';
+            debugConsole.innerHTML += `<div style="color:${color}">[${time}] ${msg}</div>`;
+            debugConsole.scrollTop = debugConsole.scrollHeight;
+            console.log(msg);
+        }
+        
+        // Status Check
+        function checkStatus() {
+            const status = document.getElementById('status');
+            let html = '';
+            
+            // Browser
+            const isChrome = /Chrome/.test(navigator.userAgent);
+            const isEdge = /Edg/.test(navigator.userAgent);
+            html += `Browser: ${isChrome ? '✅ Chrome' : isEdge ? '✅ Edge' : '❌ Nicht unterstützt'}<br>`;
+            
+            // Three.js
+            html += `Three.js: ${typeof THREE !== 'undefined' ? '✅ Geladen' : '❌ Fehlt'}<br>`;
+            
+            // Speech API
+            const hasSpeechRecognition = 'SpeechRecognition' in window || 'webkitSpeechRecognition' in window;
+            html += `Speech Recognition: ${hasSpeechRecognition ? '✅ Verfügbar' : '❌ Nicht verfügbar'}<br>`;
+            
+            const hasSpeechSynthesis = 'speechSynthesis' in window;
+            html += `Speech Synthesis: ${hasSpeechSynthesis ? '✅ Verfügbar' : '❌ Nicht verfügbar'}<br>`;
+            
+            status.innerHTML = html;
+            log('Status-Check abgeschlossen', 'success');
+        }
+        
+        // 3D Viewer
+        let scene, camera, renderer, cube;
+        
+        function init3D() {
+            const container = document.getElementById('3d-container');
+            
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xe0e0e0);
+            
+            camera = new THREE.PerspectiveCamera(
+                75, 
+                container.clientWidth / container.clientHeight, 
+                0.1, 
+                1000
+            );
+            camera.position.z = 5;
+            
+            renderer = new THREE.WebGLRenderer();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            container.appendChild(renderer.domElement);
+            
+            // Licht
+            const light = new THREE.DirectionalLight(0xffffff, 1);
+            light.position.set(5, 5, 5);
+            scene.add(light);
+            scene.add(new THREE.AmbientLight(0x404040));
+            
+            log('3D Viewer initialisiert', 'success');
+            animate();
+        }
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            if (cube) {
+                cube.rotation.x += 0.01;
+                cube.rotation.y += 0.01;
+            }
+            renderer.render(scene, camera);
+        }
+        
+        // Test-Funktionen
+        function testCreateBlock() {
+            log('Erstelle Block...', 'info');
+            
+            if (cube) scene.remove(cube);
+            
+            const geometry = new THREE.BoxGeometry(2, 2, 2);
+            const material = new THREE.MeshPhongMaterial({ color: 0x00ff00 });
+            cube = new THREE.Mesh(geometry, material);
+            scene.add(cube);
+            
+            log('✅ Block erstellt!', 'success');
+        }
+        
+        function testCreateItem() {
+            log('Erstelle Item (Schwert)...', 'info');
+            
+            if (cube) scene.remove(cube);
+            
+            const handle = new THREE.BoxGeometry(0.2, 1.5, 0.2);
+            const blade = new THREE.BoxGeometry(0.1, 2, 0.3);
+            
+            const group = new THREE.Group();
+            const handleMesh = new THREE.Mesh(handle, 
+                new THREE.MeshPhongMaterial({ color: 0x8b4513 }));
+            const bladeMesh = new THREE.Mesh(blade, 
+                new THREE.MeshPhongMaterial({ color: 0xc0c0c0 }));
+            bladeMesh.position.y = 1.75;
+            
+            group.add(handleMesh);
+            group.add(bladeMesh);
+            
+            cube = group;
+            scene.add(cube);
+            
+            log('✅ Schwert erstellt!', 'success');
+        }
+        
+        function testAnimation() {
+            log('Starte Animation...', 'info');
+            if (cube) {
+                let scale = 1;
+                let growing = true;
+                const animate = () => {
+                    if (growing) {
+                        scale += 0.01;
+                        if (scale > 1.5) growing = false;
+                    } else {
+                        scale -= 0.01;
+                        if (scale < 0.5) growing = true;
+                    }
+                    cube.scale.set(scale, scale, scale);
+                };
+                setInterval(animate, 50);
+                log('✅ Animation gestartet!', 'success');
+            } else {
+                log('❌ Kein Objekt zum Animieren!', 'error');
+            }
+        }
+        
+        function testSpeech() {
+            log('Claude spricht...', 'info');
+            const text = 'Hallo! Ich bin Claude. Die Sprachausgabe funktioniert!';
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'de-DE';
+            speechSynthesis.speak(utterance);
+            log('✅ Sprachausgabe gestartet', 'success');
+        }
+        
+        // Voice Recognition
+        let recognition = null;
+        let isListening = false;
+        
+        function toggleVoice() {
+            const btn = document.getElementById('voiceBtn');
+            const status = document.getElementById('voiceStatus');
+            
+            if (!recognition) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                if (!SpeechRecognition) {
+                    log('❌ Spracherkennung nicht verfügbar!', 'error');
+                    alert('Spracherkennung nicht verfügbar! Verwende Chrome oder Edge.');
+                    return;
+                }
+                
+                recognition = new SpeechRecognition();
+                recognition.lang = 'de-DE';
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                
+                recognition.onstart = () => {
+                    log('🎤 Spracherkennung gestartet', 'success');
+                    btn.classList.add('active');
+                    status.textContent = 'Status: HÖRE ZU... (Sprechen Sie jetzt!)';
+                    isListening = true;
+                };
+                
+                recognition.onresult = (event) => {
+                    let finalTranscript = '';
+                    let interimTranscript = '';
+                    
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        const transcript = event.results[i][0].transcript;
+                        if (event.results[i].isFinal) {
+                            finalTranscript += transcript + ' ';
+                        } else {
+                            interimTranscript += transcript;
+                        }
+                    }
+                    
+                    document.getElementById('transcript').innerHTML = 
+                        `<strong>Final:</strong> ${finalTranscript}<br>` +
+                        `<em>Live:</em> ${interimTranscript}`;
+                    
+                    if (finalTranscript) {
+                        log(`Erkannt: "${finalTranscript}"`, 'success');
+                        processCommand(finalTranscript);
+                    }
+                };
+                
+                recognition.onerror = (event) => {
+                    log(`❌ Fehler: ${event.error}`, 'error');
+                    if (event.error === 'not-allowed') {
+                        alert('Mikrofon-Zugriff verweigert! Bitte erlauben Sie den Zugriff.');
+                    }
+                    stopListening();
+                };
+                
+                recognition.onend = () => {
+                    log('Spracherkennung beendet', 'info');
+                    stopListening();
+                };
+            }
+            
+            if (isListening) {
+                stopListening();
+            } else {
+                startListening();
+            }
+        }
+        
+        function startListening() {
+            if (recognition) {
+                try {
+                    recognition.start();
+                } catch (err) {
+                    log(`❌ Start-Fehler: ${err.message}`, 'error');
+                }
+            }
+        }
+        
+        function stopListening() {
+            if (recognition) {
+                recognition.stop();
+            }
+            isListening = false;
+            document.getElementById('voiceBtn').classList.remove('active');
+            document.getElementById('voiceStatus').textContent = 'Status: Gestoppt';
+        }
+        
+        function processCommand(command) {
+            const cmd = command.toLowerCase();
+            log(`Verarbeite Befehl: "${cmd}"`, 'info');
+            
+            if (cmd.includes('block')) {
+                testCreateBlock();
+                testSpeech();
+            } else if (cmd.includes('schwert') || cmd.includes('item')) {
+                testCreateItem();
+            } else if (cmd.includes('animation') || cmd.includes('bewege')) {
+                testAnimation();
+            } else if (cmd.includes('hallo')) {
+                const utterance = new SpeechSynthesisUtterance('Hallo! Schön dich zu hören!');
+                utterance.lang = 'de-DE';
+                speechSynthesis.speak(utterance);
+            }
+        }
+        
+        // Initialisierung
+        window.onload = () => {
+            checkStatus();
+            init3D();
+            log('Debug-Interface bereit!', 'success');
+        };
+    </script>
+</body>
+</html>

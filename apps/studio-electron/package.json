@@ -1,0 +1,26 @@
+{
+  "name": "@kidmodstudio/studio-electron",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/main/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "electron .",
+    "dev": "tsc && electron .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "package": "electron-builder"
+  },
+  "dependencies": {
+    "@kidmodstudio/ipc-contracts": "*",
+    "electron-log": "^5.0.0",
+    "keytar": "^7.9.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "electron": "^33.0.0",
+    "electron-builder": "^24.0.0",
+    "vitest": "^2.0.0"
+  }
+}

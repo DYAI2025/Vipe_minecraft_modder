@@ -1,0 +1,81 @@
+{
+  "meta": {
+    "name": "KidMod Demo",
+    "modId": "kidmod_demo",
+    "mavenGroup": "com.kidmodstudio",
+    "packageName": "com.kidmodstudio.kidmod_demo",
+    "archivesBaseName": "kidmod-demo",
+    "version": "0.1.0",
+    "mcVersion": "1.20.1",
+    "loader": "fabric",
+    "javaVersion": 17
+  },
+  "blocks": [
+    {
+      "id": "ruby_block",
+      "displayName": {
+        "en_us": "Ruby Block",
+        "de_de": "Rubin Block"
+      },
+      "texture": {
+        "type": "procedural",
+        "preset": "ruby"
+      },
+      "props": {
+        "hardness": 2.0,
+        "luminance": 10,
+        "transparent": false
+      }
+    }
+  ],
+  "items": [
+    {
+      "id": "ruby_gem",
+      "displayName": {
+        "en_us": "Ruby Gem",
+        "de_de": "Rubin Edelstein"
+      },
+      "texture": {
+        "type": "procedural",
+        "preset": "ruby"
+      },
+      "props": {
+        "kind": "gem",
+        "attack": 0,
+        "durability": 250
+      }
+    }
+  ],
+  "recipes": [
+    {
+      "id": "ruby_block_from_gems",
+      "type": "shaped",
+      "result": {
+        "item": "kidmod_demo:ruby_block",
+        "count": 1
+      },
+      "pattern": [
+        "###",
+        "###",
+        "###"
+      ],
+      "key": {
+        "#": {
+          "item": "kidmod_demo:ruby_gem"
+        }
+      }
+    }
+  ],
+  "lang": {
+    "en_us": {
+      "itemGroup.kidmod_demo": "KidMod Demo",
+      "block.kidmod_demo.ruby_block": "Ruby Block",
+      "item.kidmod_demo.ruby_gem": "Ruby Gem"
+    },
+    "de_de": {
+      "itemGroup.kidmod_demo": "KidMod Demo",
+      "block.kidmod_demo.ruby_block": "Rubin Block",
+      "item.kidmod_demo.ruby_gem": "Rubin Edelstein"
+    }
+  }
+}

@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude-Craft Ultimate - KI Minecraft Mod Creator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { text-shadow: 0 0 20px rgba(255,255,255,0.5); }
+            50% { text-shadow: 0 0 40px rgba(255,255,255,0.8); }
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            gap: 20px;
+        }
+
+        .panel {
+            background: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .panel-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        /* KI & Sprach Input */
+        .ai-section {
+            margin-bottom: 20px;
+        }
+
+        .voice-button {
+            width: 100%;
+            padding: 20px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 15px;
+        }
+
+        .voice-button:hover {
+            transform: scale(1.05);
+        }
+
+        .voice-button.recording {
+            animation: pulse 1s infinite;
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 82, 82, 0.7); }
+            70% { box-shadow: 0 0 0 20px rgba(255, 82, 82, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 82, 82, 0); }
+        }
+
+        .ai-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .ai-examples {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .ai-examples h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .example-item {
+            padding: 8px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .example-item:hover {
+            background: #667eea;
+            color: white;
+            transform: translateX(5px);
+        }
+
+        /* Item Builder */
+        .item-types {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .item-type-btn {
+            padding: 15px;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .item-type-btn:hover {
+            border-color: #667eea;
+            background: #f0f0ff;
+        }
+
+        .item-type-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        /* Properties */
+        .property-control {
+            margin-bottom: 20px;
+        }
+
+        .property-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .property-slider {
+            width: 100%;
+            height: 10px;
+            border-radius: 5px;
+            background: #e0e0e0;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .property-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+        }
+
+        /* Center Display */
+        .item-display {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .item-visual {
+            font-size: 120px;
+            margin-bottom: 20px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .item-name {
+            font-size: 32px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .item-power {
+            font-size: 24px;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 50px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        .item-abilities {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .ability {
+            padding: 10px;
+            margin: 8px 0;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .ability-icon {
+            font-size: 24px;
+        }
+
+        /* Export Section */
+        .export-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .export-btn {
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: white;
+        }
+
+        .export-mcreator {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+
+        .export-command {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+        }
+
+        .export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        /* Status Bar */
+        .status-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.9);
+            color: white;
+            padding: 15px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #4caf50;
+            animation: blink 2s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .status-dot.offline {
+            background: #f44336;
+            animation: none;
+        }
+
+        /* Notifications */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transform: translateX(400px);
+            transition: transform 0.3s;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            border-left: 5px solid #4caf50;
+        }
+
+        .notification.error {
+            border-left: 5px solid #f44336;
+        }
+
+        /* Item Collection */
+        .item-collection {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .collection-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .collection-item:hover {
+            background: #f0f0ff;
+            transform: translateX(5px);
+        }
+
+        .delete-btn {
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Claude-Craft Ultimate</h1>
+            <p>KI-gesteuerte Minecraft Mod-Erstellung mit Sprachsteuerung</p>
+        </div>
+
+        <div class="main-grid">
+            <!-- Left Panel: Input & Controls -->
+            <div class="panel">
+                <h2 class="panel-title">🎮 Steuerung</h2>
+                
+                <!-- Voice Control -->
+                <div class="ai-section">
+                    <button id="voiceBtn" class="voice-button" onclick="toggleVoice()">
+                        🎤 Sprachsteuerung aktivieren
+                    </button>
+                    <div id="voiceStatus" style="text-align: center; margin-bottom: 15px; color: #666;">
+                        Klicke zum Starten...
+                    </div>
+                </div>
+
+                <!-- AI Input -->
+                <div class="ai-section">
+                    <input type="text" id="aiInput" class="ai-input" 
+                           placeholder="Beschreibe dein Item..." 
+                           onkeypress="if(event.key==='Enter') sendAICommand()">
+                    <button class="voice-button" style="background: linear-gradient(135deg, #667eea, #764ba2);" 
+                            onclick="sendAICommand()">
+                        🤖 Mit KI erstellen
+                    </button>
+                </div>
+
+                <!-- Examples -->
+                <div class="ai-examples">
+                    <h4>Beispiele (klicke zum Testen):</h4>
+                    <div class="example-item" onclick="useExample(this.textContent)">
+                        Erstelle ein ultimatives Feuerschwert mit 150 Schaden
+                    </div>
+                    <div class="example-item" onclick="useExample(this.textContent)">
+                        Legendäre Rüstung die heilt und Geschwindigkeit gibt
+                    </div>
+                    <div class="example-item" onclick="useExample(this.textContent)">
+                        Unzerstörbarer Bogen mit explosiven Pfeilen
+                    </div>
+                    <div class="example-item" onclick="useExample(this.textContent)">
+                        Magischer Block mit 100 Herzen und Sprungkraft
+                    </div>
+                </div>
+
+                <!-- Manual Item Types -->
+                <h3 style="margin: 20px 0 10px; color: #667eea;">Oder manuell erstellen:</h3>
+                <div class="item-types">
+                    <button class="item-type-btn" onclick="selectItemType('sword', '⚔️')">
+                        ⚔️<br>Schwert
+                    </button>
+                    <button class="item-type-btn" onclick="selectItemType('bow', '🏹')">
+                        🏹<br>Bogen
+                    </button>
+                    <button class="item-type-btn" onclick="selectItemType('pickaxe', '⛏️')">
+                        ⛏️<br>Spitzhacke
+                    </button>
+                    <button class="item-type-btn" onclick="selectItemType('axe', '🪓')">
+                        🪓<br>Axt
+                    </button>
+                    <button class="item-type-btn" onclick="selectItemType('armor', '🛡️')">
+                        🛡️<br>Rüstung
+                    </button>
+                    <button class="item-type-btn" onclick="selectItemType('helmet', '⛑️')">
+                        ⛑️<br>Helm
+                    </button>
+                    <button class="item-type-btn" onclick="selectItemType('block', '🧱')">
+                        🧱<br>Block
+                    </button>
+                    <button class="item-type-btn" onclick="selectItemType('potion', '🧪')">
+                        🧪<br>Trank
+                    </button>
+                </div>
+            </div>
+
+            <!-- Center Panel: Display -->
+            <div class="panel">
+                <h2 class="panel-title">✨ Item-Vorschau</h2>
+                
+                <div class="item-display">
+                    <div id="itemIcon" class="item-visual">❓</div>
+                    <div id="itemName" class="item-name">Kein Item ausgewählt</div>
+                    <div id="itemPower" class="item-power">⚪ NORMAL</div>
+                    
+                    <div class="item-abilities" id="itemAbilities">
+                        <h3 style="margin-bottom: 15px; color: #667eea;">Eigenschaften:</h3>
+                        <div id="abilitiesList">
+                            <div class="ability">
+                                <span class="ability-icon">💡</span>
+                                <span>Wähle ein Item oder nutze die KI</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Properties -->
+                <div style="margin-top: 30px;">
+                    <h3 style="margin-bottom: 15px; color: #667eea;">⚙️ Eigenschaften anpassen:</h3>
+                    
+                    <div class="property-control">
+                        <div class="property-label">
+                            <span>❤️ Gesundheit</span>
+                            <span id="healthValue">0</span>
+                        </div>
+                        <input type="range" class="property-slider" id="healthSlider" 
+                               min="0" max="100" value="0" oninput="updateProperty('health', this.value)">
+                    </div>
+                    
+                    <div class="property-control">
+                        <div class="property-label">
+                            <span>⚔️ Schaden</span>
+                            <span id="damageValue">0</span>
+                        </div>
+                        <input type="range" class="property-slider" id="damageSlider" 
+                               min="0" max="200" value="0" oninput="updateProperty('damage', this.value)">
+                    </div>
+                    
+                    <div class="property-control">
+                        <div class="property-label">
+                            <span>💨 Geschwindigkeit</span>
+                            <span id="speedValue">0</span>
+                        </div>
+                        <input type="range" class="property-slider" id="speedSlider" 
+                               min="0" max="10" value="0" oninput="updateProperty('speed', this.value)">
+                    </div>
+                    
+                    <div class="property-control">
+                        <div class="property-label">
+                            <span>🦘 Sprungkraft</span>
+                            <span id="jumpValue">0</span>
+                        </div>
+                        <input type="range" class="property-slider" id="jumpSlider" 
+                               min="0" max="10" value="0" oninput="updateProperty('jump', this.value)">
+                    </div>
+                    
+                    <div class="property-control">
+                        <div class="property-label">
+                            <span>🔥 Feuer</span>
+                            <span id="fireValue">0</span>
+                        </div>
+                        <input type="range" class="property-slider" id="fireSlider" 
+                               min="0" max="10" value="0" oninput="updateProperty('fire', this.value)">
+                    </div>
+                    
+                    <div class="property-control">
+                        <div class="property-label">
+                            <span>🔧 Haltbarkeit</span>
+                            <span id="durabilityValue">100</span>
+                        </div>
+                        <input type="range" class="property-slider" id="durabilitySlider" 
+                               min="100" max="10000" value="100" step="100" 
+                               oninput="updateProperty('durability', this.value)">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel: Export & Collection -->
+            <div class="panel">
+                <h2 class="panel-title">📦 Export & Sammlung</h2>
+                
+                <!-- Export Buttons -->
+                <div class="export-buttons">
+                    <button class="export-btn export-mcreator" onclick="exportToMCreator()">
+                        📦 MCreator Export
+                    </button>
+                    <button class="export-btn export-command" onclick="exportToMinecraft()">
+                        🎮 MC Command
+                    </button>
+                </div>
+                
+                <!-- Current Item Actions -->
+                <div style="margin: 20px 0;">
+                    <button class="voice-button" style="background: #4caf50;" onclick="saveToCollection()">
+                        💾 Zur Sammlung hinzufügen
+                    </button>
+                </div>
+                
+                <!-- Item Collection -->
+                <h3 style="margin: 20px 0 10px; color: #667eea;">📚 Meine Items:</h3>
+                <div class="item-collection" id="itemCollection">
+                    <!-- Items werden hier angezeigt -->
+                </div>
+                
+                <!-- Collection Actions -->
+                <div style="margin-top: 20px;">
+                    <button class="voice-button" style="background: #ff9800;" 
+                            onclick="exportAllToMCreator()">
+                        🚀 Alle exportieren
+                    </button>
+                </div>
+                
+                <!-- Info -->
+                <div style="margin-top: 30px; padding: 15px; background: #f8f9fa; border-radius: 10px;">
+                    <h4 style="color: #667eea; margin-bottom: 10px;">💡 Tipps:</h4>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="margin: 5px 0;">• Sage "Hey Claude" für Sprachsteuerung</li>
+                        <li style="margin: 5px 0;">• Kombiniere mehrere Effekte</li>
+                        <li style="margin: 5px 0;">• Sammle Items für Mod-Packs</li>
+                        <li style="margin: 5px 0;">• Exportiere direkt zu MCreator</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+        <div class="status-item">
+            <span class="status-dot" id="serverStatus"></span>
+            <span>Server: <span id="serverText">Prüfe...</span></span>
+        </div>
+        <div class="status-item">
+            <span class="status-dot" id="aiStatus"></span>
+            <span>KI: <span id="aiText">Prüfe...</span></span>
+        </div>
+        <div class="status-item">
+            <span class="status-dot" id="mcreatorStatus"></span>
+            <span>MCreator: <span id="mcreatorText">Prüfe...</span></span>
+        </div>
+        <div class="status-item">
+            <span>Items: <span id="itemCount">0</span></span>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification" class="notification">
+        <div id="notificationText"></div>
+    </div>
+
+    <script>
+        // Global State
+        let currentItem = {
+            name: '',
+            type: '',
+            icon: '❓',
+            properties: {
+                health: 0,
+                damage: 0,
+                speed: 0,
+                jump: 0,
+                fire: 0,
+                durability: 100,
+                special: []
+            },
+            powerLevel: '⚪ NORMAL'
+        };
+
+        let itemCollection = [];
+        let recognition = null;
+        let isListening = false;
+
+        // Initialize
+        window.addEventListener('load', () => {
+            checkStatus();
+            setInterval(checkStatus, 5000);
+            loadCollection();
+            initSpeechRecognition();
+        });
+
+        // Speech Recognition
+        function initSpeechRecognition() {
+            if ('webkitSpeechRecognition' in window) {
+                recognition = new webkitSpeechRecognition();
+                recognition.lang = 'de-DE';
+                recognition.continuous = false;
+                recognition.interimResults = true;
+                
+                recognition.onstart = () => {
+                    isListening = true;
+                    document.getElementById('voiceBtn').classList.add('recording');
+                    document.getElementById('voiceStatus').textContent = '🎤 Höre zu...';
+                };
+                
+                recognition.onresult = (event) => {
+                    const transcript = event.results[0][0].transcript;
+                    document.getElementById('aiInput').value = transcript;
+                    document.getElementById('voiceStatus').textContent = `"${transcript}"`;
+                    
+                    if (event.results[0].isFinal) {
+                        sendAICommand();
+                    }
+                };
+                
+                recognition.onerror = (event) => {
+                    console.error('Speech error:', event.error);
+                    document.getElementById('voiceStatus').textContent = '❌ Fehler: ' + event.error;
+                    stopListening();
+                };
+                
+                recognition.onend = () => {
+                    stopListening();
+                };
+            } else {
+                document.getElementById('voiceBtn').style.display = 'none';
+                document.getElementById('voiceStatus').textContent = 'Spracherkennung nicht verfügbar';
+            }
+        }
+
+        function toggleVoice() {
+            if (isListening) {
+                stopListening();
+            } else {
+                startListening();
+            }
+        }
+
+        function startListening() {
+            if (recognition) {
+                recognition.start();
+            }
+        }
+
+        function stopListening() {
+            if (recognition) {
+                recognition.stop();
+            }
+            isListening = false;
+            document.getElementById('voiceBtn').classList.remove('recording');
+            document.getElementById('voiceStatus').textContent = 'Klicke zum Starten...';
+        }
+
+        // AI Commands
+        async function sendAICommand() {
+            const command = document.getElementById('aiInput').value;
+            if (!command) {
+                showNotification('Bitte gib einen Befehl ein!', 'error');
+                return;
+            }
+            
+            try {
+                showNotification('🤖 KI verarbeitet...', 'info');
+                
+                const response = await fetch('/api/ai/parse', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ command })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Apply parsed item
+                    currentItem = {
+                        ...data.result,
+                        icon: getItemIcon(data.result.type)
+                    };
+                    
+                    updateDisplay();
+                    showNotification(`✅ "${currentItem.name}" wurde erstellt!`, 'success');
+                    
+                    // Show suggestions
+                    if (data.suggestions && data.suggestions.length > 0) {
+                        console.log('Vorschläge:', data.suggestions);
+                    }
+                }
+            } catch (error) {
+                console.error('AI Error:', error);
+                showNotification('❌ KI-Fehler!', 'error');
+            }
+        }
+
+        // Use example
+        function useExample(text) {
+            document.getElementById('aiInput').value = text;
+            sendAICommand();
+        }
+
+        // Select item type manually
+        function selectItemType(type, icon) {
+            currentItem.type = type;
+            currentItem.icon = icon;
+            currentItem.name = getItemName(type);
+            
+            // Set default properties for type
+            currentItem.properties = {
+                health: type === 'armor' || type === 'helmet' ? 20 : 0,
+                damage: type === 'sword' ? 50 : (type === 'bow' ? 30 : (type === 'pickaxe' || type === 'axe' ? 20 : 0)),
+                speed: 0,
+                jump: 0,
+                fire: 0,
+                durability: 1000,
+                special: []
+            };
+            
+            updateDisplay();
+            
+            // Update active button
+            document.querySelectorAll('.item-type-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+        // Update property
+        function updateProperty(prop, value) {
+            currentItem.properties[prop] = parseInt(value);
+            document.getElementById(prop + 'Value').textContent = value;
+            currentItem.powerLevel = calculatePowerLevel(currentItem.properties);
+            updateDisplay();
+        }
+
+        // Calculate power level
+        function calculatePowerLevel(properties) {
+            let score = 0;
+            score += properties.health * 2;
+            score += properties.damage * 3;
+            score += properties.speed * 10;
+            score += properties.jump * 8;
+            score += properties.fire * 5;
+            score += properties.durability >= 10000 ? 100 : properties.durability / 100;
+            
+            if (score > 300) return '⚡ GOTTGLEICH';
+            if (score > 200) return '💎 LEGENDÄR';
+            if (score > 150) return '🔮 EPISCH';
+            if (score > 100) return '✨ SELTEN';
+            if (score > 50) return '🌟 UNGEWÖHNLICH';
+            return '⚪ NORMAL';
+        }
+
+        // Update display
+        function updateDisplay() {
+            document.getElementById('itemIcon').textContent = currentItem.icon;
+            document.getElementById('itemName').textContent = currentItem.name || 'Unbenannt';
+            document.getElementById('itemPower').textContent = currentItem.powerLevel;
+            
+            // Update sliders
+            Object.keys(currentItem.properties).forEach(prop => {
+                if (prop !== 'special') {
+                    const slider = document.getElementById(prop + 'Slider');
+                    const value = document.getElementById(prop + 'Value');
+                    if (slider && value) {
+                        slider.value = currentItem.properties[prop];
+                        value.textContent = currentItem.properties[prop];
+                    }
+                }
+            });
+            
+            // Update abilities
+            const abilitiesList = document.getElementById('abilitiesList');
+            abilitiesList.innerHTML = '';
+            
+            if (currentItem.properties.health > 0) {
+                addAbility('❤️', `Heilt ${currentItem.properties.health} HP`);
+            }
+            if (currentItem.properties.damage > 0) {
+                addAbility('⚔️', `${currentItem.properties.damage} Schaden`);
+            }
+            if (currentItem.properties.speed > 0) {
+                addAbility('💨', `+${currentItem.properties.speed} Geschwindigkeit`);
+            }
+            if (currentItem.properties.jump > 0) {
+                addAbility('🦘', `+${currentItem.properties.jump} Sprungkraft`);
+            }
+            if (currentItem.properties.fire > 0) {
+                addAbility('🔥', `Feuer ${currentItem.properties.fire}s`);
+            }
+            if (currentItem.properties.durability >= 10000) {
+                addAbility('♾️', 'Unzerstörbar');
+            }
+            
+            // Add special abilities
+            if (currentItem.properties.special) {
+                currentItem.properties.special.forEach(special => {
+                    const [icon, text] = special.split(' ');
+                    addAbility(icon, text);
+                });
+            }
+        }
+
+        function addAbility(icon, text) {
+            const abilitiesList = document.getElementById('abilitiesList');
+            const div = document.createElement('div');
+            div.className = 'ability';
+            div.innerHTML = `
+                <span class="ability-icon">${icon}</span>
+                <span>${text}</span>
+            `;
+            abilitiesList.appendChild(div);
+        }
+
+        // Save to collection
+        function saveToCollection() {
+            if (!currentItem.name || currentItem.name === 'Unbenannt') {
+                currentItem.name = prompt('Gib dem Item einen Namen:') || 'Item ' + (itemCollection.length + 1);
+            }
+            
+            itemCollection.push({...currentItem});
+            updateCollection();
+            saveCollection();
+            showNotification(`✅ "${currentItem.name}" zur Sammlung hinzugefügt!`, 'success');
+        }
+
+        // Update collection display
+        function updateCollection() {
+            const collectionDiv = document.getElementById('itemCollection');
+            collectionDiv.innerHTML = '';
+            
+            itemCollection.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'collection-item';
+                div.innerHTML = `
+                    <span onclick="loadItem(${index})">
+                        ${item.icon} ${item.name} - ${item.powerLevel}
+                    </span>
+                    <button class="delete-btn" onclick="deleteItem(${index})">❌</button>
+                `;
+                collectionDiv.appendChild(div);
+            });
+            
+            document.getElementById('itemCount').textContent = itemCollection.length;
+        }
+
+        // Load item from collection
+        function loadItem(index) {
+            currentItem = {...itemCollection[index]};
+            updateDisplay();
+            showNotification(`📂 "${currentItem.name}" geladen`, 'success');
+        }
+
+        // Delete item
+        function deleteItem(index) {
+            if (confirm(`"${itemCollection[index].name}" löschen?`)) {
+                itemCollection.splice(index, 1);
+                updateCollection();
+                saveCollection();
+            }
+        }
+
+        // Save/Load collection
+        function saveCollection() {
+            localStorage.setItem('claudeCraftCollection', JSON.stringify(itemCollection));
+        }
+
+        function loadCollection() {
+            const saved = localStorage.getItem('claudeCraftCollection');
+            if (saved) {
+                itemCollection = JSON.parse(saved);
+                updateCollection();
+            }
+        }
+
+        // Export to MCreator
+        async function exportToMCreator() {
+            if (!currentItem.type) {
+                showNotification('Bitte erstelle zuerst ein Item!', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/items/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(currentItem)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                } else {
+                    showNotification('Export fehlgeschlagen!', 'error');
+                }
+            } catch (error) {
+                showNotification('Verbindungsfehler!', 'error');
+            }
+        }
+
+        // Export all to MCreator
+        async function exportAllToMCreator() {
+            if (itemCollection.length === 0) {
+                showNotification('Keine Items in der Sammlung!', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/export/mcreator', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ items: itemCollection })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                } else {
+                    showNotification('Export fehlgeschlagen!', 'error');
+                }
+            } catch (error) {
+                showNotification('Verbindungsfehler!', 'error');
+            }
+        }
+
+        // Export to Minecraft
+        async function exportToMinecraft() {
+            if (!currentItem.type) {
+                showNotification('Bitte erstelle zuerst ein Item!', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/export/command', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(currentItem)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    navigator.clipboard.writeText(data.command).then(() => {
+                        showNotification(`✅ Command kopiert!`, 'success');
+                        console.log('Command:', data.command);
+                    });
+                } else {
+                    showNotification('Command-Generierung fehlgeschlagen!', 'error');
+                }
+            } catch (error) {
+                showNotification('Verbindungsfehler!', 'error');
+            }
+        }
+
+        // Check status
+        async function checkStatus() {
+            try {
+                const response = await fetch('/api/status');
+                const data = await response.json();
+                
+                // Server
+                document.getElementById('serverStatus').classList.remove('offline');
+                document.getElementById('serverText').textContent = 'Online';
+                
+                // AI
+                if (data.ai) {
+                    document.getElementById('aiStatus').classList.remove('offline');
+                    document.getElementById('aiText').textContent = 'Bereit';
+                } else {
+                    document.getElementById('aiStatus').classList.add('offline');
+                    document.getElementById('aiText').textContent = 'Fallback';
+                }
+                
+                // MCreator
+                if (data.mcreator) {
+                    document.getElementById('mcreatorStatus').classList.remove('offline');
+                    document.getElementById('mcreatorText').textContent = 'Läuft';
+                } else {
+                    document.getElementById('mcreatorStatus').classList.add('offline');
+                    document.getElementById('mcreatorText').textContent = 'Aus';
+                }
+            } catch (error) {
+                document.getElementById('serverStatus').classList.add('offline');
+                document.getElementById('serverText').textContent = 'Offline';
+            }
+        }
+
+        // Show notification
+        function showNotification(text, type = 'info') {
+            const notification = document.getElementById('notification');
+            const notificationText = document.getElementById('notificationText');
+            
+            notification.className = 'notification ' + type;
+            notificationText.textContent = text;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Helper functions
+        function getItemIcon(type) {
+            const icons = {
+                'sword': '⚔️',
+                'bow': '🏹',
+                'pickaxe': '⛏️',
+                'axe': '🪓',
+                'armor': '🛡️',
+                'helmet': '⛑️',
+                'block': '🧱',
+                'potion': '🧪'
+            };
+            return icons[type] || '❓';
+        }
+
+        function getItemName(type) {
+            const names = {
+                'sword': 'Schwert',
+                'bow': 'Bogen',
+                'pickaxe': 'Spitzhacke',
+                'axe': 'Axt',
+                'armor': 'Rüstung',
+                'helmet': 'Helm',
+                'block': 'Block',
+                'potion': 'Trank'
+            };
+            return names[type] || 'Item';
+        }
+    </script>
+</body>
+</html>

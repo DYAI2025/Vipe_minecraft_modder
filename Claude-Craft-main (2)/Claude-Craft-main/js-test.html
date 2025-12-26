@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>JS Test</title>
+</head>
+<body>
+    <h1>JavaScript Test</h1>
+    <div id="status"></div>
+    
+    <script>
+        const status = document.getElementById('status');
+        let html = '<h2>Lade-Status:</h2>';
+        
+        // Test Three.js
+        if (typeof THREE !== 'undefined') {
+            html += '<p style="color:green">✅ Three.js geladen</p>';
+        } else {
+            html += '<p style="color:red">❌ Three.js NICHT geladen</p>';
+        }
+        
+        // Test Voice Control
+        if (typeof VoiceControl !== 'undefined') {
+            html += '<p style="color:green">✅ VoiceControl geladen</p>';
+        } else {
+            html += '<p style="color:red">❌ VoiceControl NICHT geladen</p>';
+        }
+        
+        // Test 3D Viewer
+        if (typeof Viewer3D !== 'undefined') {
+            html += '<p style="color:green">✅ Viewer3D geladen</p>';
+        } else {
+            html += '<p style="color:red">❌ Viewer3D NICHT geladen</p>';
+        }
+        
+        // Test Speech API
+        if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+            html += '<p style="color:green">✅ Speech API verfügbar</p>';
+        } else {
+            html += '<p style="color:red">❌ Speech API NICHT verfügbar</p>';
+        }
+        
+        status.innerHTML = html;
+    </script>
+    
+    <!-- Lade die Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
+    <script src="js/voice-control.js"></script>
+    <script src="js/3d-viewer.js"></script>
+    
+    <script>
+        // Nochmal testen nach dem Laden
+        setTimeout(() => {
+            const status2 = document.getElementById('status');
+            status2.innerHTML += '<h3>Nach dem Laden:</h3>';
+            
+            if (typeof THREE !== 'undefined') {
+                status2.innerHTML += '<p style="color:green">✅ Three.js OK</p>';
+            }
+            if (typeof voiceControl !== 'undefined') {
+                status2.innerHTML += '<p style="color:green">✅ voiceControl Instanz OK</p>';
+            }
+            if (window.viewer3D) {
+                status2.innerHTML += '<p style="color:green">✅ viewer3D Instanz OK</p>';
+            }
+        }, 1000);
+    </script>
+</body>
+</html>

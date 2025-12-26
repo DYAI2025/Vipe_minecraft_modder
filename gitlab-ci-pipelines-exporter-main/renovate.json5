@@ -1,0 +1,35 @@
+{
+  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
+  extends: [
+    'config:best-practices',
+  ],
+  postUpdateOptions: [
+    'gomodTidy',
+  ],
+  customManagers: [
+    {
+      customType: 'regex',
+      managerFilePatterns: [
+        '/^Makefile$/',
+      ],
+      matchStrings: [
+        'go run (?<depName>.*?)@(?<currentValue>.*?) ',
+      ],
+      datasourceTemplate: 'go',
+    },
+  ],
+  packageRules: [
+    {
+      groupName: 'all patch and minor',
+      matchPackageNames: [
+        '*',
+      ],
+      matchUpdateTypes: [
+        'minor',
+        'patch',
+        'digest',
+      ],
+      automerge: true,
+    },
+  ],
+}

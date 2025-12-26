@@ -1,0 +1,12 @@
+dist
+helpers
+vendor
+**/*.tgz
+/gitlab-ci-pipelines-exporter.yml
+**/.DS_Store
+gitlab-ci-pipelines-exporter
+!cmd/gitlab-ci-pipelines-exporter
+!examples/**/gitlab-ci-pipelines-exporter
+coverage.out
+.*.sock
+.idea

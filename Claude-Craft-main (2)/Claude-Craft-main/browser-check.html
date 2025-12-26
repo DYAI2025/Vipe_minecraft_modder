@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Browser & Speech API Check</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .box {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .success { color: green; font-weight: bold; }
+        .error { color: red; font-weight: bold; }
+        .warning { color: orange; font-weight: bold; }
+        .big { font-size: 24px; }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Browser & Speech API Diagnose</h1>
+    
+    <div class="box">
+        <h2>Browser-Info:</h2>
+        <div id="browser-info"></div>
+    </div>
+    
+    <div class="box">
+        <h2>Speech API Status:</h2>
+        <div id="api-status"></div>
+    </div>
+    
+    <div class="box">
+        <h2>Lösung:</h2>
+        <div id="solution"></div>
+    </div>
+
+    <script>
+        // Detaillierte Browser-Erkennung
+        const ua = navigator.userAgent;
+        const browserInfo = document.getElementById('browser-info');
+        const apiStatus = document.getElementById('api-status');
+        const solution = document.getElementById('solution');
+        
+        let browserName = 'Unbekannt';
+        let browserVersion = '';
+        let isSupported = false;
+        
+        // Browser erkennen
+        if (ua.includes('Electron')) {
+            browserName = 'Electron App';
+            browserVersion = ua.match(/Electron\/([0-9.]+)/)?.[1] || '';
+            // Electron nutzt Chromium
+            isSupported = true;
+        } else if (ua.includes('Chrome') && !ua.includes('Edg')) {
+            browserName = 'Google Chrome';
+            browserVersion = ua.match(/Chrome\/([0-9.]+)/)?.[1] || '';
+            isSupported = true;
+        } else if (ua.includes('Edg')) {
+            browserName = 'Microsoft Edge';
+            browserVersion = ua.match(/Edg\/([0-9.]+)/)?.[1] || '';
+            isSupported = true;
+        } else if (ua.includes('Firefox')) {
+            browserName = 'Mozilla Firefox';
+            browserVersion = ua.match(/Firefox\/([0-9.]+)/)?.[1] || '';
+            isSupported = false;
+        } else if (ua.includes('Safari') && !ua.includes('Chrome')) {
+            browserName = 'Safari';
+            browserVersion = ua.match(/Version\/([0-9.]+)/)?.[1] || '';
+            isSupported = false;
+        }
+        
+        // Browser-Info anzeigen
+        browserInfo.innerHTML = `
+            <p><strong>Browser:</strong> ${browserName} ${browserVersion}</p>
+            <p><strong>User Agent:</strong> <small>${ua}</small></p>
+            <p class="${isSupported ? 'success' : 'error'}">
+                ${isSupported ? '✅ Dieser Browser sollte Speech API unterstützen!' : '❌ Dieser Browser unterstützt keine Speech API!'}
+            </p>
+        `;
+        
+        // API-Checks
+        const checks = {
+            'window.speechSynthesis': typeof window.speechSynthesis !== 'undefined',
+            'window.SpeechSynthesisUtterance': typeof window.SpeechSynthesisUtterance !== 'undefined',
+            'window.SpeechRecognition': typeof window.SpeechRecognition !== 'undefined',
+            'window.webkitSpeechRecognition': typeof window.webkitSpeechRecognition !== 'undefined',
+            'navigator.mediaDevices': typeof navigator.mediaDevices !== 'undefined',
+            'navigator.mediaDevices.getUserMedia': navigator.mediaDevices && typeof navigator.mediaDevices.getUserMedia === 'function'
+        };
+        
+        let apiHtml = '<ul>';
+        for (const [api, available] of Object.entries(checks)) {
+            apiHtml += `<li>${available ? '✅' : '❌'} ${api}</li>`;
+        }
+        apiHtml += '</ul>';
+        
+        // Zusätzliche Checks
+        apiHtml += '<h3>Weitere Checks:</h3>';
+        apiHtml += `<p>HTTPS/Secure Context: ${window.isSecureContext ? '✅ Ja' : '❌ Nein'}</p>`;
+        apiHtml += `<p>Lokale Datei: ${window.location.protocol === 'file:' ? '⚠️ Ja (kann Problem sein)' : '✅ Nein'}</p>`;
+        
+        apiStatus.innerHTML = apiHtml;
+        
+        // Lösungsvorschläge
+        let solutionHtml = '';
+        
+        if (!isSupported) {
+            solutionHtml = `
+                <div class="error big">⚠️ Browser nicht kompatibel!</div>
+                <p>Bitte verwende einen dieser Browser:</p>
+                <ul>
+                    <li><a href="https://www.google.com/chrome/" target="_blank">Google Chrome herunterladen</a></li>
+                    <li><a href="https://www.microsoft.com/edge" target="_blank">Microsoft Edge herunterladen</a></li>
+                </ul>
+            `;
+        } else if (!checks['window.SpeechRecognition'] && !checks['window.webkitSpeechRecognition']) {
+            solutionHtml = `
+                <div class="warning big">Speech API nicht verfügbar</div>
+                <p>Mögliche Lösungen:</p>
+                <ol>
+                    <li><strong>Öffne die App über einen lokalen Server statt als file://</strong></li>
+                    <li><strong>Nutze die Electron-App statt Browser</strong></li>
+                    <li><strong>Aktiviere Chrome Flags:</strong>
+                        <ul>
+                            <li>Öffne: chrome://flags</li>
+                            <li>Suche: "Experimental Web Platform features"</li>
+                            <li>Aktiviere es und starte Chrome neu</li>
+                        </ul>
+                    </li>
+                </ol>
+                <button onclick="startLocalServer()">🚀 Lokalen Server starten</button>
+            `;
+        } else {
+            solutionHtml = `
+                <div class="success big">✅ Alles sollte funktionieren!</div>
+                <button onclick="testSpeech()">🎤 Spracherkennung testen</button>
+            `;
+        }
+        
+        solution.innerHTML = solutionHtml;
+        
+        // Test-Funktion
+        function testSpeech() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (SpeechRecognition) {
+                const recognition = new SpeechRecognition();
+                recognition.lang = 'de-DE';
+                recognition.start();
+                alert('Sprich jetzt! Die Spracherkennung läuft...');
+                recognition.onresult = (event) => {
+                    alert('Erkannt: ' + event.results[0][0].transcript);
+                };
+                recognition.onerror = (err) => {
+                    alert('Fehler: ' + err.error);
+                };
+            } else {
+                alert('Speech API nicht verfügbar!');
+            }
+        }
+        
+        function startLocalServer() {
+            alert('Führe diesen Befehl im Terminal aus:\n\ncd C:\\ClaudeCraft\nnpx http-server -p 8080\n\nDann öffne: http://localhost:8080');
+        }
+    </script>
+</body>
+</html>

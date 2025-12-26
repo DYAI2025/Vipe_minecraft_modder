@@ -1,0 +1,132 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://kidmodstudio.local/schemas/settings.schema.json",
+  "title": "KidModStudio SettingsConfig",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "stt", "llm", "safety", "ui"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+
+    "stt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider",
+        "language",
+        "sampleRateHz",
+        "interimResults",
+        "maxUtteranceMs",
+        "endpointingMs",
+        "providerConfig"
+      ],
+      "properties": {
+        "provider": { "enum": ["livekit", "webspeech", "manual_text"] },
+        "language": { "enum": ["de-DE", "en-US"] },
+        "sampleRateHz": { "enum": [16000, 48000] },
+        "interimResults": { "type": "boolean" },
+        "maxUtteranceMs": { "type": "integer", "minimum": 1000, "maximum": 600000 },
+        "endpointingMs": { "type": "integer", "minimum": 0, "maximum": 5000 },
+
+        "providerConfig": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["provider", "endpointUrl"],
+              "properties": {
+                "provider": { "const": "livekit" },
+                "endpointUrl": { "type": "string", "minLength": 1 },
+                "apiKeyRef": { "type": "string", "pattern": "^secret:.+$" },
+                "model": { "type": "string" },
+                "insecureSkipVerifyTLS": { "type": "boolean" }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["provider"],
+              "properties": { "provider": { "const": "webspeech" } }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["provider"],
+              "properties": { "provider": { "const": "manual_text" } }
+            }
+          ]
+        }
+      }
+    },
+
+    "llm": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["providerConfig", "defaultMode"],
+      "properties": {
+        "defaultMode": { "enum": ["actions_only", "patch_fix"] },
+        "providerConfig": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "provider",
+            "baseUrl",
+            "model",
+            "requestTimeoutMs",
+            "temperature",
+            "maxTokens",
+            "jsonMode"
+          ],
+          "properties": {
+            "provider": { "const": "openai_compatible" },
+            "baseUrl": { "type": "string", "minLength": 1 },
+            "apiKeyRef": { "type": "string", "pattern": "^secret:.+$" },
+            "model": { "type": "string", "minLength": 1 },
+            "requestTimeoutMs": { "type": "integer", "minimum": 1000, "maximum": 600000 },
+            "temperature": { "type": "number", "minimum": 0.0, "maximum": 2.0 },
+            "maxTokens": { "type": "integer", "minimum": 1, "maximum": 32768 },
+            "jsonMode": { "enum": ["strict", "best_effort"] }
+          }
+        }
+      }
+    },
+
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "allowPatchMode",
+        "requireHumanReviewForPatches",
+        "patchWhitelistGlobs",
+        "denylistRegexes",
+        "maxPatchFiles",
+        "maxPatchBytes"
+      ],
+      "properties": {
+        "allowPatchMode": { "type": "boolean" },
+        "requireHumanReviewForPatches": { "const": true },
+        "patchWhitelistGlobs": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "minItems": 1
+        },
+        "denylistRegexes": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "maxPatchFiles": { "type": "integer", "minimum": 1, "maximum": 100 },
+        "maxPatchBytes": { "type": "integer", "minimum": 1000, "maximum": 2000000 }
+      }
+    },
+
+    "ui": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kidMode", "showDevDetails"],
+      "properties": {
+        "kidMode": { "type": "boolean" },
+        "showDevDetails": { "type": "boolean" }
+      }
+    }
+  }
+}

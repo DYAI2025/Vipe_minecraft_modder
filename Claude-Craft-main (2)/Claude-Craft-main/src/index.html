@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude-Craft IDE 🎮</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Custom Titlebar -->
+    <div class="titlebar">
+        <div class="titlebar-drag">
+            <span class="app-title">🎮 Claude-Craft IDE - Minecraft Mod Creator</span>
+        </div>
+        <div class="titlebar-controls">
+            <button class="titlebar-btn minimize">─</button>
+            <button class="titlebar-btn maximize">□</button>
+            <button class="titlebar-btn close">✕</button>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Sidebar mit Tools -->
+        <div class="sidebar">
+            <div class="tool-section">
+                <h3>🎨 Blöcke</h3>
+                <button class="tool-btn" onclick="openBlockCreator()">
+                    <span class="icon">🧱</span>
+                    Neuer Block
+                </button>
+            </div>
+            <div class="tool-section">
+                <h3>⚔️ Items</h3>
+                <button class="tool-btn" onclick="openItemCreator()">
+                    <span class="icon">🗡️</span>
+                    Neues Item
+                </button>
+            </div>
+            
+            <div class="tool-section">
+                <h3>🎯 Rezepte</h3>
+                <button class="tool-btn" onclick="openRecipeCreator()">
+                    <span class="icon">📜</span>
+                    Neues Rezept
+                </button>
+            </div>
+
+            <div class="voice-section">
+                <button id="voice-btn" class="voice-button">
+                    <span class="mic-icon">🎤</span>
+                    <span class="voice-text">Sprachbefehl</span>
+                </button>
+                <div class="voice-status" id="voice-status">Bereit...</div>
+            </div>
+        </div>
+        <!-- Hauptarbeitsbereich -->
+        <div class="workspace">
+            <!-- 3D Viewer -->
+            <div class="viewer-container">
+                <div id="3d-viewer" class="three-viewer">
+                    <div class="viewer-controls">
+                        <button onclick="resetCamera()">🔄 Reset</button>
+                        <button onclick="toggleWireframe()">📐 Wireframe</button>
+                        <button onclick="exportModel()">💾 Export</button>
+                    </div>
+                </div>
+                <div class="viewer-info">
+                    <h3>3D Vorschau</h3>
+                    <p id="object-info">Kein Objekt geladen</p>
+                </div>
+            </div>
+
+            <!-- Properties Panel -->
+            <div class="properties-panel">
+                <h3>✨ Eigenschaften</h3>
+                <div id="properties-content">
+                    <p class="empty-state">Wähle ein Element aus...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Status Bar -->
+    <div class="status-bar">
+        <div class="status-item">
+            <span class="status-icon">🟢</span>
+            <span id="connection-status">MCreator verbunden</span>
+        </div>
+        <div class="status-item">
+            <span id="current-project">Kein Projekt geladen</span>
+        </div>
+        <div class="status-item">
+            <span id="claude-status">Claude ist bereit zu helfen! 🤖</span>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
+    <script src="js/minecraft-textures.js"></script>
+    <script src="js/voice-control.js"></script>
+    <script src="js/3d-viewer-fixed.js"></script>
+    <script src="js/mcreator-bridge.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

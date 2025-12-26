@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>🎮 Claude-Craft Test-Zentrale</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            margin: 0;
+        }
+        .test-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 30px;
+        }
+        h1 {
+            text-align: center;
+            font-size: 48px;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .test-section {
+            background: rgba(255,255,255,0.9);
+            color: #333;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .test-button {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 50px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s;
+            font-weight: bold;
+            display: inline-block;
+        }
+        .test-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .command-box {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            color: #333;
+        }
+        .success { color: #4CAF50; font-weight: bold; }
+        .warning { color: #FF9800; font-weight: bold; }
+        .error { color: #f44336; font-weight: bold; }
+        #status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            color: #333;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .test-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .check {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #4CAF50;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .check.done {
+            background: #4CAF50;
+            position: relative;
+        }
+        .check.done::after {
+            content: '✓';
+            color: white;
+            position: absolute;
+            top: -2px;
+            left: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div id="status">
+        <strong>Status:</strong> <span id="app-status">Bereit zum Testen!</span>
+    </div>
+
+    <div class="test-container">
+        <h1>🎮 Claude-Craft Test-Zentrale</h1>
+        
+        <div class="test-section">
+            <h2>1️⃣ App Starten</h2>
+            <button class="test-button" onclick="startApp()">
+                🚀 Claude-Craft starten
+            </button>
+            <button class="test-button" onclick="openSpeechTest()">
+                🎤 Sprach-Test öffnen
+            </button>
+            <div class="command-box">
+                Oder manuell: <code>cd C:\ClaudeCraft && npx electron .</code>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>2️⃣ Sprachbefehle testen</h2>
+            <p>Klicke auf "🎤 Sprachbefehl" in der App und sage:</p>
+            
+            <div class="test-item">
+                <span>"Erstelle einen Block"</span>
+                <input type="checkbox" class="check" onclick="markDone(this)">
+            </div>
+            
+            <div class="test-item">
+                <span>"Mache ihn aus Diamant"</span>
+                <input type="checkbox" class="check" onclick="markDone(this)">
+            </div>
+            
+            <div class="test-item">
+                <span>"Lass es leuchten"</span>
+                <input type="checkbox" class="check" onclick="markDone(this)">
+            </div>
+            
+            <div class="test-item">
+                <span>"Mache ihn größer"</span>
+                <input type="checkbox" class="check" onclick="markDone(this)">
+            </div>
+            
+            <div class="test-item">
+                <span>"Lass es schweben"</span>
+                <input type="checkbox" class="check" onclick="markDone(this)">
+            </div>
+            
+            <div class="test-item">
+                <span>"Regenbogenfarben bitte"</span>
+                <input type="checkbox" class="check" onclick="markDone(this)">
+            </div>
+            
+            <div class="test-item">
+                <span>"Claude, erkläre mir das!"</span>
+                <input type="checkbox" class="check" onclick="markDone(this)">
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>3️⃣ UI-Features testen</h2>
+            
+            <div class="test-item">
+                <span>Button "Neuer Block" klicken</span>
+                <input type="checkbox" class="check" onclick="markDone(this)">
+            </div>
+            
+            <div class="test-item">
+                <span>Properties-Panel: Größe ändern (Slider)</span>
+                <input type="checkbox" class="check" onclick="markDone(this)">
+            </div>
+            
+            <div class="test-item">
+                <span>Properties-Panel: Härte ändern</span>
+                <input type="checkbox" class="check" onclick="markDone(this)">
+            </div>
+            
+            <div class="test-item">
+                <span>Properties-Panel: Leuchtkraft anpassen</span>
+                <input type="checkbox" class="check" onclick="markDone(this)">
+            </div>
+            
+            <div class="test-item">
+                <span>3D-Viewer: Reset Camera Button</span>
+                <input type="checkbox" class="check" onclick="markDone(this)">
+            </div>
+            
+            <div class="test-item">
+                <span>3D-Viewer: Wireframe Toggle</span>
+                <input type="checkbox" class="check" onclick="markDone(this)">
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>4️⃣ Erweiterte Tests</h2>
+            
+            <div class="test-item">
+                <span>Kombinationsbefehl: "Erstelle einen großen leuchtenden transparenten Glasblock"</span>
+                <input type="checkbox" class="check" onclick="markDone(this)">
+            </div>
+            
+            <div class="test-item">
+                <span>Tastenkürzel: Leertaste für Sprachbefehl</span>
+                <input type="checkbox" class="check" onclick="markDone(this)">
+            </div>
+            
+            <div class="test-item">
+                <span>Tastenkürzel: Strg+S zum Speichern</span>
+                <input type="checkbox" class="check" onclick="markDone(this)">
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>📊 Test-Ergebnis</h2>
+            <div style="font-size: 24px; text-align: center;">
+                <span id="score">0</span> / 19 Tests bestanden
+            </div>
+            <div id="result" style="text-align: center; margin-top: 20px;"></div>
+        </div>
+    </div>
+
+    <script>
+        let completed = 0;
+        const total = 19;
+
+        function markDone(checkbox) {
+            if (checkbox.checked) {
+                checkbox.classList.add('done');
+                completed++;
+            } else {
+                checkbox.classList.remove('done');
+                completed--;
+            }
+            updateScore();
+        }
+
+        function updateScore() {
+            document.getElementById('score').textContent = completed;
+            const percentage = (completed / total * 100).toFixed(0);
+            const result = document.getElementById('result');
+            
+            if (percentage === '100') {
+                result.innerHTML = '<span class="success">🎉 PERFEKT! Alle Tests bestanden!</span>';
+            } else if (percentage >= 80) {
+                result.innerHTML = '<span class="success">👍 Super! Fast alles funktioniert!</span>';
+            } else if (percentage >= 50) {
+                result.innerHTML = '<span class="warning">🔧 Gut, aber es gibt noch was zu tun!</span>';
+            } else {
+                result.innerHTML = '<span>Weiter testen... Du schaffst das!</span>';
+            }
+        }
+
+        function startApp() {
+            document.getElementById('app-status').innerHTML = 
+                '<span class="success">App wird gestartet...</span>';
+            // In echter Implementierung würde hier Electron gestartet
+            alert('Bitte führe aus: cd C:\\ClaudeCraft && npx electron .');
+        }
+
+        function openSpeechTest() {
+            window.open('speech-test.html', '_blank');
+        }
+
+        // Claude's Stimme
+        function speak(text) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'de-DE';
+            utterance.rate = 0.95;
+            utterance.pitch = 1.1;
+            speechSynthesis.speak(utterance);
+        }
+
+        // Begrüßung
+        setTimeout(() => {
+            speak("Willkommen in der Test-Zentrale! Lass uns Claude-Craft testen!");
+        }, 1000);
+    </script>
+</body>
+</html>

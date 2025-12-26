@@ -1,0 +1,48 @@
+---
+name: test
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        os:
+          - ubuntu-24.04
+          - macos-13
+          - windows-2022
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+
+      - name: Install Go
+        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6
+        with:
+          go-version: '1.24'
+
+      - name: Lint
+        if: ${{ matrix.os == 'ubuntu-24.04' }}
+        run: make lint
+
+      - name: Test
+        run: make test
+
+      - name: Publish coverage to coveralls.io
+        uses: shogo82148/actions-goveralls@e6875f831db61e6abffbd8df91a2eb6cd24b46c9 # v1
+        if: ${{ matrix.os == 'ubuntu-24.04' }}
+        with:
+          path-to-profile: coverage.out
+
+      - name: Build
+        run: make build

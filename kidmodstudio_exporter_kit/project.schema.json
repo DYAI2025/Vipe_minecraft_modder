@@ -1,0 +1,422 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://kidmodstudio.local/schemas/project.schema.json",
+  "title": "KidModStudio Project",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "meta",
+    "blocks",
+    "items",
+    "recipes",
+    "lang"
+  ],
+  "properties": {
+    "meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "modId",
+        "mavenGroup",
+        "packageName",
+        "archivesBaseName",
+        "version",
+        "mcVersion",
+        "loader",
+        "javaVersion"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "modId": {
+          "type": "string",
+          "pattern": "^[a-z0-9_\\-]+$",
+          "minLength": 2,
+          "maxLength": 64
+        },
+        "mavenGroup": {
+          "type": "string",
+          "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*(\\.[a-zA-Z_][a-zA-Z0-9_]*)+$"
+        },
+        "packageName": {
+          "type": "string",
+          "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*(\\.[a-zA-Z_][a-zA-Z0-9_]*)+$"
+        },
+        "archivesBaseName": {
+          "type": "string",
+          "pattern": "^[a-z0-9_\\-]+$",
+          "minLength": 2,
+          "maxLength": 64
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(-[a-z0-9\\-\\.]+)?$"
+        },
+        "mcVersion": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "loader": {
+          "type": "string",
+          "enum": [
+            "fabric"
+          ]
+        },
+        "javaVersion": {
+          "type": "integer",
+          "enum": [
+            17
+          ]
+        }
+      }
+    },
+    "blocks": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/blockDef"
+      },
+      "default": []
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/itemDef"
+      },
+      "default": []
+    },
+    "recipes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/recipeDef"
+      },
+      "default": []
+    },
+    "lang": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "en_us",
+        "de_de"
+      ],
+      "properties": {
+        "en_us": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "de_de": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "colorHex": {
+      "type": "string",
+      "pattern": "^#[0-9A-Fa-f]{6}$"
+    },
+    "textureDef": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "path"
+          ],
+          "properties": {
+            "type": {
+              "const": "import"
+            },
+            "path": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "preset"
+          ],
+          "properties": {
+            "type": {
+              "const": "procedural"
+            },
+            "preset": {
+              "type": "string",
+              "enum": [
+                "solid",
+                "ruby",
+                "emerald",
+                "diamond",
+                "stone",
+                "wood",
+                "grass",
+                "glass"
+              ]
+            },
+            "color": {
+              "$ref": "#/definitions/colorHex"
+            }
+          }
+        }
+      ]
+    },
+    "blockProps": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "hardness": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 50.0,
+          "default": 1.0
+        },
+        "luminance": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 15,
+          "default": 0
+        },
+        "transparent": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "itemProps": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "gem",
+            "sword"
+          ]
+        },
+        "attack": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 30,
+          "default": 0
+        },
+        "durability": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5000,
+          "default": 250
+        }
+      }
+    },
+    "blockDef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "displayName",
+        "texture",
+        "props"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9_]+$",
+          "minLength": 2,
+          "maxLength": 64
+        },
+        "displayName": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "en_us",
+            "de_de"
+          ],
+          "properties": {
+            "en_us": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            },
+            "de_de": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            }
+          }
+        },
+        "texture": {
+          "$ref": "#/definitions/textureDef"
+        },
+        "props": {
+          "$ref": "#/definitions/blockProps"
+        }
+      }
+    },
+    "itemDef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "displayName",
+        "texture",
+        "props"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9_]+$",
+          "minLength": 2,
+          "maxLength": 64
+        },
+        "displayName": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "en_us",
+            "de_de"
+          ],
+          "properties": {
+            "en_us": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            },
+            "de_de": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            }
+          }
+        },
+        "texture": {
+          "$ref": "#/definitions/textureDef"
+        },
+        "props": {
+          "$ref": "#/definitions/itemProps"
+        }
+      }
+    },
+    "identifier": {
+      "type": "string",
+      "pattern": "^[a-z0-9_\\-]+:[a-z0-9_\\-/]+$"
+    },
+    "ingredient": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "item"
+      ],
+      "properties": {
+        "item": {
+          "$ref": "#/definitions/identifier"
+        }
+      }
+    },
+    "recipeDef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "result"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9_]+$",
+          "minLength": 2,
+          "maxLength": 64
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "shaped",
+            "shapeless"
+          ]
+        },
+        "result": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "item",
+            "count"
+          ],
+          "properties": {
+            "item": {
+              "$ref": "#/definitions/identifier"
+            },
+            "count": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 64
+            }
+          }
+        },
+        "pattern": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 3
+          },
+          "minItems": 1,
+          "maxItems": 3
+        },
+        "key": {
+          "type": "object",
+          "patternProperties": {
+            "^[#A-Za-z]$": {
+              "$ref": "#/definitions/ingredient"
+            }
+          },
+          "additionalProperties": false
+        },
+        "ingredients": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ingredient"
+          },
+          "minItems": 1,
+          "maxItems": 9
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "shaped"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "pattern",
+              "key"
+            ]
+          },
+          "else": {
+            "required": [
+              "ingredients"
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

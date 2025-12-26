@@ -1,0 +1,46 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+
+# Electron
+dist/
+out/
+*.exe
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+logs/
+*.log
+
+# Cache
+.npm
+.eslintcache
+
+# Environment
+.env
+.env.local
+
+# Test Coverage
+coverage/
+.nyc_output/
+
+# MCreator Workspace (temporär)
+mcreator-workspace/
+
+# Build artifacts
+build/
+*.zip

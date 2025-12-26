@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>🎤 Sprach-Debug Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        .test-box {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        button {
+            padding: 15px 30px;
+            font-size: 18px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        #status {
+            padding: 20px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            margin: 20px 0;
+            min-height: 100px;
+        }
+        .error { color: #ff6b6b; font-weight: bold; }
+        .success { color: #51cf66; font-weight: bold; }
+        .warning { color: #ffd43b; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>🎤 Sprach-Debug Test für Claude-Craft</h1>
+    
+    <div class="test-box">
+        <h2>1. Browser-Check</h2>
+        <p id="browser-info"></p>
+    </div>
+
+    <div class="test-box">
+        <h2>2. Mikrofon-Test</h2>
+        <button onclick="testMicrophone()">🎤 Mikrofon testen</button>
+        <button onclick="testSpeechRecognition()">🗣️ Spracherkennung testen</button>
+        <button onclick="testSpeechOutput()">🔊 Sprachausgabe testen</button>
+    </div>
+
+    <div class="test-box">
+        <h2>3. Live-Test</h2>
+        <button id="startBtn" onclick="startListening()">Start Spracherkennung</button>
+        <button id="stopBtn" onclick="stopListening()" disabled>Stop</button>
+    </div>
+
+    <div id="status">
+        <h3>Status:</h3>
+        <div id="status-text">Bereit...</div>
+    </div>
+
+    <script>
+        // Browser Check
+        const browserInfo = document.getElementById('browser-info');
+        const isChrome = /Chrome/.test(navigator.userAgent);
+        const isEdge = /Edg/.test(navigator.userAgent);
+        const isElectron = navigator.userAgent.includes('Electron');
+        
+        if (isElectron) {
+            browserInfo.innerHTML = '<span class="success">✅ Läuft in Electron</span>';
+        } else if (isChrome || isEdge) {
+            browserInfo.innerHTML = '<span class="success">✅ Browser unterstützt Spracherkennung (Chrome/Edge)</span>';
+        } else {
+            browserInfo.innerHTML = '<span class="error">❌ Browser unterstützt keine Spracherkennung! Verwende Chrome oder Edge!</span>';
+        }
+
+        let recognition = null;
+        const statusDiv = document.getElementById('status-text');
+
+        // Test Mikrofon-Zugriff
+        async function testMicrophone() {
+            statusDiv.innerHTML = 'Teste Mikrofon-Zugriff...';
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                statusDiv.innerHTML = '<span class="success">✅ Mikrofon-Zugriff erfolgreich!</span>';
+                
+                // Zeige Audio-Level
+                const audioContext = new AudioContext();
+                const analyser = audioContext.createAnalyser();
+                const microphone = audioContext.createMediaStreamSource(stream);
+                microphone.connect(analyser);
+                analyser.fftSize = 256;
+                const bufferLength = analyser.frequencyBinCount;
+                const dataArray = new Uint8Array(bufferLength);
+                
+                let maxLevel = 0;
+                const checkLevel = setInterval(() => {
+                    analyser.getByteFrequencyData(dataArray);
+                    const level = Math.max(...dataArray);
+                    if (level > maxLevel) maxLevel = level;
+                    statusDiv.innerHTML = `<span class="success">✅ Mikrofon aktiv!</span><br>` +
+                                         `Audio-Level: ${'█'.repeat(Math.floor(level/10))} (${level}/255)<br>` +
+                                         `Max-Level: ${maxLevel}`;
+                }, 100);
+                
+                setTimeout(() => {
+                    clearInterval(checkLevel);
+                    stream.getTracks().forEach(track => track.stop());
+                    statusDiv.innerHTML += '<br>Mikrofon-Test beendet.';
+                }, 5000);
+                
+            } catch (err) {
+                statusDiv.innerHTML = `<span class="error">❌ Mikrofon-Fehler: ${err.message}</span><br>` +
+                                     `<span class="warning">Lösung: Browser-Permissions prüfen!</span>`;
+            }
+        }
+
+        // Test Spracherkennung
+        function testSpeechRecognition() {
+            statusDiv.innerHTML = 'Teste Spracherkennung...';
+            
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                statusDiv.innerHTML = '<span class="error">❌ Spracherkennung nicht verfügbar!</span>';
+                return;
+            }
+            
+            statusDiv.innerHTML = '<span class="success">✅ Spracherkennung verfügbar!</span><br>' +
+                                 'Unterstützte Sprachen werden geladen...';
+            
+            // Zeige verfügbare Sprachen
+            setTimeout(() => {
+                statusDiv.innerHTML += '<br>Deutsch (de-DE) ✅';
+            }, 500);
+        }
+
+        // Test Sprachausgabe
+        function testSpeechOutput() {
+            statusDiv.innerHTML = 'Teste Sprachausgabe...';
+            
+            if (!('speechSynthesis' in window)) {
+                statusDiv.innerHTML = '<span class="error">❌ Sprachausgabe nicht verfügbar!</span>';
+                return;
+            }
+            
+            const utterance = new SpeechSynthesisUtterance(
+                'Hallo! Ich bin Claude. Die Sprachausgabe funktioniert perfekt!'
+            );
+            utterance.lang = 'de-DE';
+            utterance.rate = 0.9;
+            utterance.pitch = 1.1;
+            
+            speechSynthesis.speak(utterance);
+            
+            statusDiv.innerHTML = '<span class="success">✅ Sprachausgabe läuft!</span><br>' +
+                                 'Du solltest jetzt Claude hören...';
+            
+            // Zeige verfügbare Stimmen
+            setTimeout(() => {
+                const voices = speechSynthesis.getVoices();
+                const germanVoices = voices.filter(v => v.lang.includes('de'));
+                statusDiv.innerHTML += `<br>Verfügbare deutsche Stimmen: ${germanVoices.length}`;
+                germanVoices.forEach(v => {
+                    statusDiv.innerHTML += `<br>- ${v.name} (${v.lang})`;
+                });
+            }, 1000);
+        }
+
+        // Live Spracherkennung
+        function startListening() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            
+            if (!SpeechRecognition) {
+                statusDiv.innerHTML = '<span class="error">❌ Keine Spracherkennung verfügbar!</span>';
+                return;
+            }
+            
+            recognition = new SpeechRecognition();
+            recognition.lang = 'de-DE';
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            
+            recognition.onstart = () => {
+                statusDiv.innerHTML = '<span class="success">🎤 Höre zu... Sprich jetzt!</span>';
+                document.getElementById('startBtn').disabled = true;
+                document.getElementById('stopBtn').disabled = false;
+            };
+            
+            recognition.onresult = (event) => {
+                let finalTranscript = '';
+                let interimTranscript = '';
+                
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript + ' ';
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+                
+                statusDiv.innerHTML = '<span class="success">🎤 Aktiv</span><br>' +
+                                     `<strong>Erkannt:</strong> ${finalTranscript}<br>` +
+                                     `<em>Live:</em> ${interimTranscript}`;
+                
+                // Teste ob Befehle erkannt werden
+                if (finalTranscript.toLowerCase().includes('block')) {
+                    statusDiv.innerHTML += '<br><span class="success">✅ Befehl "Block" erkannt!</span>';
+                }
+            };
+            
+            recognition.onerror = (event) => {
+                statusDiv.innerHTML = `<span class="error">❌ Fehler: ${event.error}</span>`;
+                if (event.error === 'not-allowed') {
+                    statusDiv.innerHTML += '<br><span class="warning">Mikrofon-Berechtigung verweigert!</span>' +
+                                          '<br>Lösung: Browser-Einstellungen → Mikrofon erlauben';
+                }
+            };
+            
+            recognition.onend = () => {
+                document.getElementById('startBtn').disabled = false;
+                document.getElementById('stopBtn').disabled = true;
+                statusDiv.innerHTML += '<br>Spracherkennung gestoppt.';
+            };
+            
+            try {
+                recognition.start();
+            } catch (err) {
+                statusDiv.innerHTML = `<span class="error">❌ Start-Fehler: ${err.message}</span>`;
+            }
+        }
+
+        function stopListening() {
+            if (recognition) {
+                recognition.stop();
+            }
+        }
+
+        // Auto-Test beim Laden
+        window.onload = () => {
+            testSpeechRecognition();
+        };
+    </script>
+</body>
+</html>

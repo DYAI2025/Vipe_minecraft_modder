@@ -1,0 +1,436 @@
+/* Claude-Craft IDE - Kinderfreundliches Design */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', 'Comic Sans MS', Arial, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    overflow: hidden;
+    height: 100vh;
+}
+
+/* Custom Titlebar */
+.titlebar {
+    background: rgba(30, 30, 46, 0.95);
+    height: 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    -webkit-app-region: drag;
+    border-bottom: 2px solid #764ba2;
+}
+
+.app-title {
+    margin-left: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #f0f0f0;
+}
+.titlebar-controls {
+    display: flex;
+    -webkit-app-region: no-drag;
+}
+
+.titlebar-btn {
+    width: 46px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.titlebar-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.titlebar-btn.close:hover {
+    background: #e74c3c;
+}
+
+/* Main Container */
+.main-container {
+    display: flex;
+    height: calc(100vh - 32px - 30px);
+    background: rgba(255, 255, 255, 0.95);
+}
+/* Sidebar */
+.sidebar {
+    width: 280px;
+    background: linear-gradient(180deg, #4facfe 0%, #00f2fe 100%);
+    padding: 20px;
+    overflow-y: auto;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+}
+
+.tool-section {
+    margin-bottom: 25px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 15px;
+    padding: 15px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.tool-section h3 {
+    color: #2c3e50;
+    margin-bottom: 10px;
+    font-size: 18px;
+}
+
+.tool-btn {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+    color: white;    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s;
+    margin: 5px 0;
+}
+
+.tool-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+}
+
+.tool-btn .icon {
+    font-size: 20px;
+}
+
+/* Voice Control */
+.voice-section {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+}
+
+.voice-button {
+    width: 100%;
+    padding: 20px;
+    border-radius: 50px;    background: white;
+    border: 3px solid #ff6b6b;
+    color: #ff6b6b;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.voice-button:hover {
+    background: #ff6b6b;
+    color: white;
+    transform: scale(1.05);
+}
+
+.voice-button.recording {
+    animation: pulse 1.5s infinite;
+    background: #ff4444;
+    color: white;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.7); }
+    70% { box-shadow: 0 0 0 20px rgba(255, 68, 68, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0); }
+}
+.voice-status {
+    margin-top: 10px;
+    color: white;
+    font-size: 14px;
+}
+
+/* Workspace */
+.workspace {
+    flex: 1;
+    display: flex;
+    padding: 20px;
+    gap: 20px;
+}
+
+/* 3D Viewer */
+.viewer-container {
+    flex: 2;
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.three-viewer {
+    width: 100%;
+    height: 80%;
+    position: relative;
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+}
+.viewer-controls {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    gap: 10px;
+    z-index: 10;
+}
+
+.viewer-controls button {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.9);
+    color: #333;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.viewer-controls button:hover {
+    background: #4facfe;
+    color: white;
+}
+
+.viewer-info {
+    padding: 15px;
+    background: #f8f9fa;
+    color: #333;
+}
+.viewer-info h3 {
+    margin: 0 0 10px 0;
+    color: #2c3e50;
+}
+
+/* Properties Panel */
+.properties-panel {
+    flex: 1;
+    background: white;
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    overflow-y: auto;
+}
+
+.properties-panel h3 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.empty-state {
+    color: #999;
+    text-align: center;
+    padding: 40px;
+    font-style: italic;
+}
+/* Status Bar */
+.status-bar {
+    height: 30px;
+    background: rgba(30, 30, 46, 0.95);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 30px;
+    border-top: 1px solid #764ba2;
+}
+
+.status-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #f0f0f0;
+}
+
+.status-icon {
+    font-size: 10px;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #764ba2;
+}
+/* Eigenschaften-Panel Erweiterungen */
+.property-group {
+    margin-bottom: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 10px;
+}
+
+.property-group h4 {
+    color: #4facfe;
+    margin: 0 0 10px 0;
+    font-size: 16px;
+}
+
+.property-item {
+    margin: 10px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.property-item label {
+    flex: 1;
+    color: #333;
+    font-weight: 500;
+}
+
+.property-item input[type="range"] {
+    flex: 2;
+}
+
+.property-item .value {
+    min-width: 40px;
+    color: #4facfe;
+    font-weight: bold;
+}
+
+.property-help {
+    font-size: 11px;
+    color: #999;
+    font-style: italic;
+    display: block;
+    margin-top: 3px;
+}
+
+.explain-btn {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: all 0.3s;
+}
+
+.explain-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+}
+/* Help Overlay */
+.help-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.help-overlay.show {
+    opacity: 1;
+}
+
+.help-content {
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    max-width: 600px;
+    text-align: center;
+}
+
+.help-content h2 {
+    color: #4facfe;
+    margin-bottom: 20px;
+}
+
+.help-examples {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.example-card {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    padding: 15px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.example-icon {
+    font-size: 24px;
+}
+
+.example-text {
+    flex: 1;
+    text-align: left;
+    color: #333;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+/* Claude Status Animation */
+#claude-status.speaking {
+    animation: claude-speak 0.5s ease-in-out;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 5px 10px;
+    border-radius: 5px;
+    color: white !important;
+}
+
+@keyframes claude-speak {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+/* Mikrofon Button Verbesserungen */
+.mic-icon {
+    font-size: 24px;
+    animation: mic-ready 2s infinite;
+}
+
+@keyframes mic-ready {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+.voice-button.recording .mic-icon {
+    animation: mic-recording 0.5s infinite;
+}
+
+@keyframes mic-recording {
+    0%, 100% { color: #ff4444; }
+    50% { color: #ff8888; }
+}

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>3D Viewer Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        #3d-viewer {
+            width: 100%;
+            height: 400px;
+            background: #e3f2fd;
+            border: 2px solid #4facfe;
+            border-radius: 10px;
+            margin: 20px 0;
+            position: relative;
+        }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        .create-btn {
+            background: #4CAF50;
+            color: white;
+        }
+        .create-btn:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+        .animate-btn {
+            background: #2196F3;
+            color: white;
+        }
+        .animate-btn:hover {
+            background: #1976D2;
+            transform: translateY(-2px);
+        }
+        .color-btn {
+            background: #FF9800;
+            color: white;
+        }
+        .color-btn:hover {
+            background: #F57C00;
+            transform: translateY(-2px);
+        }
+        #object-info {
+            text-align: center;
+            font-size: 18px;
+            color: #666;
+            margin: 10px 0;
+        }
+        #console {
+            background: #000;
+            color: #0f0;
+            padding: 10px;
+            border-radius: 5px;
+            height: 150px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 Claude-Craft 3D Viewer Test</h1>
+        
+        <div id="object-info">Kein Objekt geladen</div>
+        
+        <div id="3d-viewer"></div>
+        
+        <div class="controls">
+            <h3 style="width: 100%; text-align: center;">Objekte erstellen:</h3>
+            <button class="create-btn" onclick="createStoneBlock()">🧱 Stein-Block</button>
+            <button class="create-btn" onclick="createGrassBlock()">🌿 Gras-Block</button>
+            <button class="create-btn" onclick="createDiamondBlock()">💎 Diamant-Block</button>
+            <button class="create-btn" onclick="createGlassBlock()">🪟 Glas-Block</button>
+            <button class="create-btn" onclick="createSword()">⚔️ Schwert</button>
+            
+            <h3 style="width: 100%; text-align: center;">Animationen:</h3>
+            <button class="animate-btn" onclick="viewer3D.startRotation()">🔄 Rotieren</button>
+            <button class="animate-btn" onclick="viewer3D.startFloating()">☁️ Schweben</button>
+            <button class="animate-btn" onclick="viewer3D.startPulsing()">💗 Pulsieren</button>
+            <button class="animate-btn" onclick="viewer3D.startShaking()">🫨 Wackeln</button>
+            <button class="animate-btn" onclick="viewer3D.applyRainbowEffect()">🌈 Regenbogen</button>
+            
+            <h3 style="width: 100%; text-align: center;">Farben:</h3>
+            <button class="color-btn" onclick="viewer3D.changeColor('#ff0000')">🔴 Rot</button>
+            <button class="color-btn" onclick="viewer3D.changeColor('#00ff00')">🟢 Grün</button>
+            <button class="color-btn" onclick="viewer3D.changeColor('#0000ff')">🔵 Blau</button>
+            <button class="color-btn" onclick="viewer3D.changeColor('#ffff00')">🟡 Gelb</button>
+            <button class="color-btn" onclick="viewer3D.changeColor('#ff00ff')">🟣 Lila</button>
+        </div>
+        
+        <h3>Console Output:</h3>
+        <div id="console"></div>
+    </div>
+
+    <!-- Three.js -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
+    
+    <!-- Fixed 3D Viewer -->
+    <script src="js/3d-viewer-fixed.js"></script>
+    
+    <script>
+        // Console Logger
+        const consoleDiv = document.getElementById('console');
+        const originalLog = console.log;
+        console.log = function(message) {
+            originalLog.apply(console, arguments);
+            const time = new Date().toLocaleTimeString();
+            consoleDiv.innerHTML += `<div>[${time}] ${message}</div>`;
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        };
+        
+        // Test-Funktionen
+        function createStoneBlock() {
+            viewer3D.createBlock({
+                name: 'Stein-Block',
+                texture: 'stone',
+                size: 1
+            });
+        }
+        
+        function createGrassBlock() {
+            viewer3D.createBlock({
+                name: 'Gras-Block',
+                texture: 'grass',
+                size: 1
+            });
+        }
+        
+        function createDiamondBlock() {
+            viewer3D.createBlock({
+                name: 'Diamant-Block',
+                texture: 'diamond',
+                size: 1,
+                luminance: 15
+            });
+        }
+        
+        function createGlassBlock() {
+            viewer3D.createBlock({
+                name: 'Glas-Block',
+                texture: 'glass',
+                size: 1,
+                transparent: true
+            });
+        }
+        
+        function createSword() {
+            viewer3D.createItem({
+                name: 'Diamant-Schwert',
+                type: 'sword'
+            });
+        }
+        
+        // Start-Nachricht
+        console.log('🎮 3D Viewer Test bereit!');
+        console.log('Klicke auf die Buttons um zu testen!');
+    </script>
+</body>
+</html>

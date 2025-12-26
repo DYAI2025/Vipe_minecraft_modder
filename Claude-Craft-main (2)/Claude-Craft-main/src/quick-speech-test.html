@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Speech API Quick Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+        .container {
+            text-align: center;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        button {
+            font-size: 24px;
+            padding: 20px 40px;
+            margin: 10px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .speak-btn {
+            background: #4CAF50;
+            color: white;
+        }
+        .speak-btn:hover {
+            transform: scale(1.1);
+        }
+        .listen-btn {
+            background: #2196F3;
+            color: white;
+        }
+        .listen-btn.active {
+            background: #f44336;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        #result {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            min-height: 50px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 Speech API Test</h1>
+        
+        <button class="speak-btn" onclick="speak()">
+            🔊 Claude spricht
+        </button>
+        
+        <button class="listen-btn" id="listenBtn" onclick="listen()">
+            🎤 Sprachbefehl
+        </button>
+        
+        <div id="result">
+            Bereit...
+        </div>
+    </div>
+
+    <script>
+        // Text-to-Speech
+        function speak() {
+            const text = 'Hallo! Ich bin Claude. Die Spracherkennung funktioniert!';
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'de-DE';
+            utterance.rate = 0.9;
+            utterance.pitch = 1.1;
+            
+            speechSynthesis.speak(utterance);
+            document.getElementById('result').innerHTML = '🔊 Claude spricht...';
+        }
+        
+        // Speech Recognition
+        let recognition = null;
+        
+        function listen() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            
+            if (!SpeechRecognition) {
+                document.getElementById('result').innerHTML = 
+                    '❌ Spracherkennung nicht verfügbar!<br>' +
+                    'Verwende Chrome oder Edge!';
+                return;
+            }
+            
+            if (!recognition) {
+                recognition = new SpeechRecognition();
+                recognition.lang = 'de-DE';
+                recognition.continuous = false;
+                recognition.interimResults = true;
+                
+                recognition.onstart = () => {
+                    document.getElementById('listenBtn').classList.add('active');
+                    document.getElementById('result').innerHTML = '🎤 Ich höre zu...';
+                };
+                
+                recognition.onresult = (event) => {
+                    const transcript = event.results[0][0].transcript;
+                    document.getElementById('result').innerHTML = 
+                        '📝 Erkannt: <strong>' + transcript + '</strong>';
+                    
+                    // Reagiere auf Befehle
+                    if (transcript.toLowerCase().includes('hallo')) {
+                        setTimeout(() => {
+                            const utterance = new SpeechSynthesisUtterance('Hallo! Schön dich zu hören!');
+                            utterance.lang = 'de-DE';
+                            speechSynthesis.speak(utterance);
+                        }, 500);
+                    }
+                };
+                
+                recognition.onerror = (event) => {
+                    document.getElementById('result').innerHTML = 
+                        '❌ Fehler: ' + event.error;
+                    document.getElementById('listenBtn').classList.remove('active');
+                };
+                
+                recognition.onend = () => {
+                    document.getElementById('listenBtn').classList.remove('active');
+                };
+            }
+            
+            try {
+                recognition.start();
+            } catch (err) {
+                document.getElementById('result').innerHTML = 
+                    '❌ Start-Fehler: ' + err.message;
+            }
+        }
+        
+        // Auto-Test beim Laden
+        window.onload = () => {
+            // Prüfe ob Speech API verfügbar ist
+            const hasSpeechRecognition = 'SpeechRecognition' in window || 
+                                         'webkitSpeechRecognition' in window;
+            const hasSpeechSynthesis = 'speechSynthesis' in window;
+            
+            let status = '';
+            if (hasSpeechRecognition && hasSpeechSynthesis) {
+                status = '✅ Speech API verfügbar!';
+            } else {
+                status = '❌ Speech API nicht verfügbar! Nutze Chrome oder Edge!';
+            }
+            
+            document.getElementById('result').innerHTML = status;
+        };
+    </script>
+</body>
+</html>
