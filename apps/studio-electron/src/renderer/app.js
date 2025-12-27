@@ -946,6 +946,11 @@ async function init() {
     setCraftyMessage(window.craftyBrain.getGreeting());
   }
 
+  // Initialize chat panel
+  if (window.chatPanel) {
+    window.chatPanel.init();
+  }
+
   // Initial health check
   if (window.kidmod) {
     try {

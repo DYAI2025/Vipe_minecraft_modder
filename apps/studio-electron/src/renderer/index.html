@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' http://127.0.0.1:* http://localhost:* https://api.openai.com https://api.anthropic.com https://api.elevenlabs.io">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' ws://127.0.0.1:* http://127.0.0.1:* http://localhost:* https://api.openai.com https://api.anthropic.com https://api.elevenlabs.io">
   <title>KidModStudio - Baue deinen eigenen Minecraft Mod!</title>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -63,34 +63,21 @@
       </div>
     </section>
 
-    <!-- Right: Crafty Helper -->
-    <aside class="helper-panel">
-      <div class="crafty-container">
-        <div class="crafty" id="crafty">
-          <div class="crafty-face">
-            <div class="crafty-eyes">
-              <div class="eye left"></div>
-              <div class="eye right"></div>
-            </div>
-            <div class="crafty-mouth">◡</div>
-          </div>
-          <div class="crafty-hat">🎓</div>
-        </div>
-        <div class="speech-bubble" id="speech-bubble">
-          <p id="crafty-message">Hallo! Ich bin Crafty! 🎮 Lass uns zusammen einen Mod bauen!</p>
-        </div>
+    <!-- Right: Chat Panel -->
+    <aside class="helper-panel chat-panel" id="chat-panel">
+      <div class="chat-header">
+        <h3>💬 Chat mit Crafty</h3>
+        <div class="chat-status" id="chat-status" title="Nicht verbunden"></div>
       </div>
 
-      <!-- Status Anzeigen -->
-      <div class="status-container">
-        <div class="status-item" id="llm-status">
-          <span class="status-icon">🧠</span>
-          <span class="status-text">Bereit zum Denken!</span>
-        </div>
-        <div class="status-item" id="stt-status">
-          <span class="status-icon">🎤</span>
-          <span class="status-text">Bereit zum Zuhören!</span>
-        </div>
+      <div class="chat-messages" id="chat-messages">
+        <!-- Messages inserted by JS -->
+      </div>
+
+      <div class="chat-input-area">
+        <input type="text" id="chat-input" placeholder="Nachricht eingeben...">
+        <button class="mc-button" id="chat-send" title="Senden">➤</button>
+        <button class="mc-button" id="chat-voice" title="Sprechen">🎤</button>
       </div>
     </aside>
   </main>
@@ -178,6 +165,7 @@
 
   <script src="craftyBrain.js"></script>
   <script src="voiceController.js"></script>
+  <script src="components/chatPanel.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
