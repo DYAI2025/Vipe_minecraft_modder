@@ -8,6 +8,7 @@ import { registerLlmHandlers } from "./ipcHandlers/llm.js";
 import { registerSettingsHandlers } from "./ipcHandlers/settings.js";
 import { registerTtsHandlers } from "./ipcHandlers/tts.register.js";
 import { registerSecretsHandlers } from "./ipcHandlers/secrets.js";
+import { startVoiceServer, stopVoiceServer } from "./voiceServer.js";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
@@ -20,6 +21,10 @@ async function createWindow(): Promise<void> {
   // Load settings before creating window
   await settingsStore.load();
   log.info("Settings loaded");
+
+  // Start voice server
+  await startVoiceServer();
+  log.info("Voice server started");
 
   mainWindow = new BrowserWindow({
     width: 1200,
@@ -57,6 +62,10 @@ app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
     app.quit();
   }
+});
+
+app.on("before-quit", () => {
+  stopVoiceServer();
 });
 
 app.on("activate", () => {
