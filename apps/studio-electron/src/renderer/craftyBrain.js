@@ -61,47 +61,17 @@ class CraftyBrain {
     this.onResponse = null;
     this.onSpeaking = null;
     this.onStateChange = null;
-    this.ttsCleanup = null;
     this.currentRequestId = null;
+    this.currentUtterance = null;
   }
 
   init() {
-    // Subscribe to TTS events
-    if (window.kidmod?.tts) {
-      this.ttsCleanup = window.kidmod.tts.onStreamEvent((event) => {
-        this.handleTtsEvent(event);
-      });
-    }
+    // WebSpeech TTS - no IPC needed
+    console.log('[CraftyBrain] Initialized with WebSpeech TTS');
   }
 
   destroy() {
-    if (this.ttsCleanup) {
-      this.ttsCleanup();
-      this.ttsCleanup = null;
-    }
-  }
-
-  handleTtsEvent(event) {
-    if (event.requestId !== this.currentRequestId) return;
-
-    switch (event.type) {
-      case "start":
-        this.onSpeaking?.(true);
-        this.onStateChange?.("speaking");
-        break;
-      case "chunk":
-        // Audio chunks handled by audio player
-        break;
-      case "end":
-        this.onSpeaking?.(false);
-        this.onStateChange?.("idle");
-        break;
-      case "error":
-        console.error("[CraftyBrain] TTS error:", event.message);
-        this.onSpeaking?.(false);
-        this.onStateChange?.("error");
-        break;
-    }
+    this.stopSpeaking();
   }
 
   async processInput(userText) {
@@ -168,27 +138,53 @@ class CraftyBrain {
   }
 
   async speak(text) {
-    if (!window.kidmod?.tts || !text) return;
-
-    try {
-      await window.kidmod.tts.speak({
-        requestId: this.currentRequestId,
-        text
-      });
-    } catch (error) {
-      console.error("[CraftyBrain] TTS speak error:", error);
+    if (!text || !('speechSynthesis' in window)) {
+      console.warn('[CraftyBrain] WebSpeech not available');
+      return;
     }
+
+    // Cancel any ongoing speech
+    speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'de-DE';
+    utterance.rate = 0.9;
+
+    // Try to find a German voice
+    const voices = speechSynthesis.getVoices();
+    const germanVoice = voices.find(v => v.lang.startsWith('de'));
+    if (germanVoice) {
+      utterance.voice = germanVoice;
+    }
+
+    utterance.onstart = () => {
+      this.onSpeaking?.(true);
+      this.onStateChange?.('speaking');
+    };
+
+    utterance.onend = () => {
+      this.onSpeaking?.(false);
+      this.onStateChange?.('idle');
+      this.currentUtterance = null;
+    };
+
+    utterance.onerror = (event) => {
+      console.error('[CraftyBrain] TTS error:', event.error);
+      this.onSpeaking?.(false);
+      this.onStateChange?.('idle');
+    };
+
+    this.currentUtterance = utterance;
+    speechSynthesis.speak(utterance);
+    console.log('[CraftyBrain] Speaking:', text);
   }
 
   async stopSpeaking() {
-    if (!window.kidmod?.tts) return;
-
-    try {
-      await window.kidmod.tts.stop({ requestId: this.currentRequestId });
-      this.onSpeaking?.(false);
-    } catch (error) {
-      console.error("[CraftyBrain] TTS stop error:", error);
+    if ('speechSynthesis' in window) {
+      speechSynthesis.cancel();
     }
+    this.onSpeaking?.(false);
+    this.currentUtterance = null;
   }
 
   getFallbackResponse() {
