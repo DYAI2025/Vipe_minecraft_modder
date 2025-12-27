@@ -15,6 +15,7 @@ const DEFAULT_CONFIG: EspeakConfig = {
 export class EspeakService {
   private config: EspeakConfig;
   private available: boolean | null = null;
+  private espeakCommand: string = 'espeak';
 
   constructor(config: Partial<EspeakConfig> = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config };
@@ -24,14 +25,60 @@ export class EspeakService {
     if (this.available !== null) return this.available;
 
     return new Promise((resolve) => {
-      const proc = spawn('which', ['espeak']);
-      proc.on('close', (code) => {
-        this.available = code === 0;
-        resolve(this.available);
-      });
+      // Check for espeak and espeak-ng (commonly used on macOS via Homebrew)
+      const commands = ['espeak', 'espeak-ng'];
+      const paths = [
+        '/opt/homebrew/bin/espeak',     // macOS Apple Silicon
+        '/opt/homebrew/bin/espeak-ng',
+        '/usr/local/bin/espeak',        // macOS Intel
+        '/usr/local/bin/espeak-ng',
+      ];
+
+      let found = false;
+      let checked = 0;
+      const totalChecks = commands.length + paths.length;
+
+      // Check via 'which'
+      for (const cmd of commands) {
+        const proc = spawn('which', [cmd]);
+        proc.on('close', (code) => {
+          checked++;
+          if (code === 0 && !found) {
+            found = true;
+            this.espeakCommand = cmd;
+            this.available = true;
+            resolve(true);
+          }
+          if (checked === totalChecks && !found) {
+            this.available = false;
+            resolve(false);
+          }
+        });
+      }
+
+      // Check Homebrew paths directly
+      for (const path of paths) {
+        const proc = spawn('test', ['-x', path]);
+        proc.on('close', (code) => {
+          checked++;
+          if (code === 0 && !found) {
+            found = true;
+            this.espeakCommand = path;
+            this.available = true;
+            resolve(true);
+          }
+          if (checked === totalChecks && !found) {
+            this.available = false;
+            resolve(false);
+          }
+        });
+      }
+
       setTimeout(() => {
-        this.available = false;
-        resolve(false);
+        if (!found) {
+          this.available = false;
+          resolve(false);
+        }
       }, 1000);
     });
   }
@@ -39,11 +86,11 @@ export class EspeakService {
   async speak(text: string): Promise<void> {
     const installed = await this.checkInstalled();
     if (!installed) {
-      throw new Error('espeak not installed');
+      throw new Error('espeak not installed. Install: brew install espeak (macOS) or apt install espeak (Linux)');
     }
 
     return new Promise((resolve, reject) => {
-      const proc = spawn('espeak', [
+      const proc = spawn(this.espeakCommand, [
         '-v', this.config.voice,
         '-s', String(this.config.speed),
         '-p', String(this.config.pitch),
@@ -65,13 +112,13 @@ export class EspeakService {
   async synthesizeWav(text: string): Promise<Buffer> {
     const installed = await this.checkInstalled();
     if (!installed) {
-      throw new Error('espeak not installed');
+      throw new Error('espeak not installed. Install: brew install espeak (macOS) or apt install espeak (Linux)');
     }
 
     return new Promise((resolve, reject) => {
       const chunks: Buffer[] = [];
 
-      const proc = spawn('espeak', [
+      const proc = spawn(this.espeakCommand, [
         '-v', this.config.voice,
         '-s', String(this.config.speed),
         '-p', String(this.config.pitch),

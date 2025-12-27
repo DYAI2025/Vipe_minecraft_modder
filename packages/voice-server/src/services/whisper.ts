@@ -25,11 +25,21 @@ export class WhisperService {
 
   async checkInstalled(): Promise<boolean> {
     return new Promise((resolve) => {
-      // Check for whisper.cpp main binary
+      // Check for whisper.cpp binary - first try 'which' for common names
       const names = ['whisper', 'whisper-cpp', 'main'];
+      // Also check macOS Homebrew paths
+      const homebrewPaths = [
+        '/opt/homebrew/bin/whisper',      // macOS Apple Silicon
+        '/opt/homebrew/bin/whisper-cpp',
+        '/usr/local/bin/whisper',         // macOS Intel
+        '/usr/local/bin/whisper-cpp',
+      ];
+
       let found = false;
       let checked = 0;
+      const totalChecks = names.length + homebrewPaths.length;
 
+      // Check via 'which' first
       for (const name of names) {
         const proc = spawn('which', [name]);
         proc.on('close', (code) => {
@@ -39,7 +49,23 @@ export class WhisperService {
             this.whisperPath = name;
             resolve(true);
           }
-          if (checked === names.length && !found) {
+          if (checked === totalChecks && !found) {
+            resolve(false);
+          }
+        });
+      }
+
+      // Check Homebrew paths directly
+      for (const path of homebrewPaths) {
+        const proc = spawn('test', ['-x', path]);
+        proc.on('close', (code) => {
+          checked++;
+          if (code === 0 && !found) {
+            found = true;
+            this.whisperPath = path;
+            resolve(true);
+          }
+          if (checked === totalChecks && !found) {
             resolve(false);
           }
         });

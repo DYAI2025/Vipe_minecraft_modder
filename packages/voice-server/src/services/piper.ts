@@ -26,9 +26,10 @@ export class PiperService {
           this.piperPath = 'piper';
           resolve(true);
         } else {
-          // Check common locations
+          // Check common locations including macOS Homebrew paths
           const paths = [
-            '/usr/local/bin/piper',
+            '/opt/homebrew/bin/piper',  // macOS Apple Silicon Homebrew
+            '/usr/local/bin/piper',      // macOS Intel Homebrew / Linux
             '/usr/bin/piper',
             `${process.env.HOME}/.local/bin/piper`
           ];
