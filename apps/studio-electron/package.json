@@ -5,7 +5,7 @@
   "main": "dist/main/index.js",
   "type": "module",
   "scripts": {
-    "build": "tsc && npm run copy-assets",
+    "build": "tsc && tsc -p tsconfig.preload.json && mv dist/preload/bridge.js dist/preload/bridge.cjs && npm run copy-assets",
     "copy-assets": "mkdir -p dist/renderer/components && cp src/renderer/*.html src/renderer/*.css src/renderer/*.js dist/renderer/ && cp src/renderer/components/*.js dist/renderer/components/ 2>/dev/null || true",
     "start": "electron --no-sandbox .",
     "dev": "npm run build && electron --no-sandbox .",

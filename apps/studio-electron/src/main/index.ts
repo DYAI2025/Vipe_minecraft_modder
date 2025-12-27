@@ -30,7 +30,7 @@ async function createWindow(): Promise<void> {
     width: 1200,
     height: 800,
     webPreferences: {
-      preload: join(__dirname, "../preload/bridge.js"),
+      preload: join(__dirname, "../preload/bridge.cjs"),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: false, // Disabled for ESM preload support
@@ -48,6 +48,9 @@ async function createWindow(): Promise<void> {
   // Load renderer
   const rendererPath = join(__dirname, "../renderer/index.html");
   await mainWindow.loadFile(rendererPath);
+
+  // Open DevTools for debugging
+  mainWindow.webContents.openDevTools();
 
   mainWindow.on("closed", () => {
     mainWindow = null;

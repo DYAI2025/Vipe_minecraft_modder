@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' ws://127.0.0.1:* http://127.0.0.1:* http://localhost:* https://api.openai.com https://api.anthropic.com https://api.elevenlabs.io">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data:; connect-src 'self' ws://127.0.0.1:* http://127.0.0.1:* http://localhost:* https://api.openai.com https://api.anthropic.com https://api.elevenlabs.io">
   <title>KidModStudio - Baue deinen eigenen Minecraft Mod!</title>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -36,6 +36,11 @@
     <!-- Center: Werkbank -->
     <section class="workbench">
       <h2>🔨 Werkbank</h2>
+      <!-- Crafty Feedback -->
+      <div class="crafty-feedback" id="crafty">
+        <span class="crafty-avatar">🤖</span>
+        <p class="crafty-message" id="crafty-message">Willkommen! Zieh Blöcke in die Werkbank!</p>
+      </div>
       <div class="crafting-area">
         <div class="crafting-grid">
           <div class="craft-slot" data-slot="0"></div>

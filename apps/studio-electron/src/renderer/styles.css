@@ -809,3 +809,53 @@ body {
   padding: var(--spacing-sm) var(--spacing-md);
   min-width: 44px;
 }
+
+/* Crafty Feedback */
+.crafty-feedback {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  background: var(--stone-dark);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: 8px;
+  margin-bottom: var(--spacing-md);
+  border: 2px solid var(--gold);
+}
+
+.crafty-avatar {
+  font-size: 24px;
+}
+
+.crafty-message {
+  flex: 1;
+  font-size: 14px;
+  color: var(--white);
+}
+
+.crafty-feedback.happy {
+  border-color: var(--success-green);
+}
+
+.crafty-feedback.thinking {
+  border-color: var(--sky-blue);
+}
+
+.crafty-feedback.talking {
+  animation: pulse 0.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+
+/* Voice Button Recording State */
+.chat-input-area button.recording {
+  background: var(--error-red);
+  animation: recording-pulse 1s ease-in-out infinite;
+}
+
+@keyframes recording-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}

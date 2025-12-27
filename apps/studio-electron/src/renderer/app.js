@@ -168,8 +168,10 @@ function resetIdleTimer() {
 // ==================== STATUS FUNKTIONEN ====================
 function updateStatus(element, status, text) {
   const statusEl = document.getElementById(element);
+  if (!statusEl) return; // Element doesn't exist
   statusEl.className = 'status-item ' + status;
-  statusEl.querySelector('.status-text').textContent = text;
+  const textEl = statusEl.querySelector('.status-text');
+  if (textEl) textEl.textContent = text;
 }
 
 // ==================== VOICE FUNKTIONEN (mit VoiceController & CraftyBrain) ====================

@@ -1,19 +1,37 @@
 import { contextBridge, ipcRenderer } from "electron";
-import {
-  IPC,
-  type SttStreamStartReq,
-  type SttStreamPushReq,
-  type SttStreamStopReq,
-  type SttStreamCancelReq,
-  type SttStreamStatusReq,
-  type SttStreamEvent,
-  type LlmHealthCheckReq,
-  type LlmCompleteJSONReq,
-  type SettingsConfig,
-  type TtsSpeakReq,
-  type TtsStopReq,
-  type TtsStreamEvent,
-} from "@kidmodstudio/ipc-contracts";
+
+// IPC channel constants (inlined to avoid ESM/CJS issues)
+const IPC = {
+  sttStreamStart: "stt.streamStart",
+  sttStreamPush: "stt.streamPush",
+  sttStreamStop: "stt.streamStop",
+  sttStreamCancel: "stt.streamCancel",
+  sttStreamStatus: "stt.streamStatus",
+  sttStreamEvent: "stt.streamEvent",
+  llmHealthCheck: "llm.healthCheck",
+  llmCompleteJSON: "llm.completeJSON",
+  ttsSpeak: "tts.speak",
+  ttsStop: "tts.stop",
+  ttsStreamEvent: "tts.streamEvent",
+  settingsGet: "settings.get",
+  settingsUpdate: "settings.update",
+  secretSet: "secret.set",
+  secretDelete: "secret.delete",
+} as const;
+
+// Types (simplified for preload)
+type SttStreamStartReq = { streamId: string; config?: unknown };
+type SttStreamPushReq = { streamId: string; pcm16le: Uint8Array };
+type SttStreamStopReq = { streamId: string };
+type SttStreamCancelReq = { streamId: string };
+type SttStreamStatusReq = { streamId: string };
+type SttStreamEvent = { streamId: string; type: string; [key: string]: unknown };
+type LlmHealthCheckReq = Record<string, unknown>;
+type LlmCompleteJSONReq = { requestId: string; [key: string]: unknown };
+type SettingsConfig = Record<string, unknown>;
+type TtsSpeakReq = { requestId: string; text: string; [key: string]: unknown };
+type TtsStopReq = Record<string, unknown>;
+type TtsStreamEvent = { type: string; [key: string]: unknown };
 
 const MAX_STREAM_ID_LENGTH = 64;
 const MAX_CHUNK_SIZE = 65536; // 64KB
