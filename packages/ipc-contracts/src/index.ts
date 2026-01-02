@@ -148,11 +148,22 @@ export interface UiConfig {
 }
 
 // ============================================================
+// Workspace Config
+// ============================================================
+
+export interface WorkspaceConfig {
+  rootPath: string;
+  autoCreate: boolean;
+  templatePath?: string;
+}
+
+// ============================================================
 // Settings Config (Main)
 // ============================================================
 
 export interface SettingsConfig {
   schemaVersion: 1;
+  workspace: WorkspaceConfig;
   stt: SttCommonConfig & { providerConfig: SttProviderConfig };
   llm: {
     providerConfig: LlmProviderConfig;

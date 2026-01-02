@@ -336,9 +336,17 @@ async function createMod() {
       }
     };
 
-    // 2. Call Exporter via IPC
-    // Using a default workspace for now
-    const workspaceDir = '/home/dyai/Dokumente/Pers.Tests-Page/social-role/DYAI_home/DEV/TOOLS/Minecraft-ModBuilder/workspace';
+    // 2. Get workspace from settings
+    const settings = await window.kidmod.settings.get();
+    const workspaceDir = settings.workspace.rootPath;
+
+    if (!workspaceDir) {
+      setCraftyMessage('Kein Workspace konfiguriert! Bitte wähle einen in den Einstellungen.');
+      updateStatus('llm-status', 'error', 'Kein Workspace');
+      return;
+    }
+
+    // 3. Call Exporter via IPC
     const result = await window.kidmod.exporter.run({ workspaceDir, project });
 
     if (result.ok) {

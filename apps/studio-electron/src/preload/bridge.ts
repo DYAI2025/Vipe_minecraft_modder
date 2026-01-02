@@ -20,6 +20,9 @@ const IPC = {
   projectSave: "project:save",
   projectLoad: "project:load",
   exporterRun: "exporter:run",
+  workspaceGet: "workspace:get",
+  workspaceSelect: "workspace:select",
+  workspaceValidate: "workspace:validate",
 } as const;
 
 // Types (simplified for preload)
@@ -167,6 +170,20 @@ const bridge = {
   exporter: {
     run: async (req: { workspaceDir: string; project: unknown }) => {
       return ipcRenderer.invoke(IPC.exporterRun, req);
+    },
+  },
+  workspace: {
+    get: async () => {
+      return ipcRenderer.invoke(IPC.workspaceGet);
+    },
+    select: async () => {
+      return ipcRenderer.invoke(IPC.workspaceSelect);
+    },
+    validate: async (path: string) => {
+      if (typeof path !== "string" || path.length === 0) {
+        throw new Error("Invalid workspace path");
+      }
+      return ipcRenderer.invoke(IPC.workspaceValidate, { path });
     },
   },
 };

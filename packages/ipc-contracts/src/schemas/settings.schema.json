@@ -6,6 +6,7 @@
   "additionalProperties": false,
   "required": [
     "schemaVersion",
+    "workspace",
     "stt",
     "llm",
     "tts",
@@ -15,6 +16,29 @@
   "properties": {
     "schemaVersion": {
       "const": 1
+    },
+    "workspace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rootPath",
+        "autoCreate"
+      ],
+      "properties": {
+        "rootPath": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Absolute path to the workspace directory where projects are stored"
+        },
+        "autoCreate": {
+          "type": "boolean",
+          "description": "Automatically create workspace directory if it doesn't exist"
+        },
+        "templatePath": {
+          "type": "string",
+          "description": "Optional custom path to Fabric template directory"
+        }
+      }
     },
     "stt": {
       "type": "object",
