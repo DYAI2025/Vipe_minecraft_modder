@@ -8,6 +8,13 @@
     "dist/**/*",
     "package.json"
   ],
+  "extraResources": [
+    {
+      "from": "../../kidmodstudio_exporter_kit/template",
+      "to": "templates/fabric",
+      "filter": ["**/*"]
+    }
+  ],
   "linux": {
     "target": ["AppImage", "deb"]
   },

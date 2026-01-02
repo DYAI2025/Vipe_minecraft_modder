@@ -2,6 +2,10 @@ import type { SettingsConfig } from "./index.js";
 
 export const DEFAULT_SETTINGS: SettingsConfig = {
   schemaVersion: 1,
+  workspace: {
+    rootPath: "", // Will be set to user documents/KidModStudio on first run
+    autoCreate: true,
+  },
   stt: {
     provider: "livekit",
     language: "de-DE",

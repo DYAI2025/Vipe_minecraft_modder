@@ -3,6 +3,7 @@ import { join } from "path";
 import { fileURLToPath } from "url";
 import log from "electron-log";
 import { settingsStore } from "./settingsStore.js";
+import { initializeWorkspace } from "./workspaceManager.js";
 import { registerSttHandlers } from "./ipcHandlers/stt.js";
 import { registerLlmHandlers } from "./ipcHandlers/llm.js";
 import { registerSettingsHandlers } from "./ipcHandlers/settings.js";
@@ -10,6 +11,7 @@ import { registerTtsHandlers } from "./ipcHandlers/tts.register.js";
 import { registerSecretsHandlers } from "./ipcHandlers/secrets.js";
 import { registerProjectHandlers } from "./ipcHandlers/project.js";
 import { registerExporterHandlers } from "./ipcHandlers/exporter.js";
+import { registerWorkspaceHandlers } from "./ipcHandlers/workspace.js";
 import { startVoiceService, stopVoiceService } from "./voiceService.js";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
@@ -21,8 +23,15 @@ let mainWindow: BrowserWindow | null = null;
 
 async function createWindow(): Promise<void> {
   // Load settings before creating window
-  await settingsStore.load();
+  let settings = await settingsStore.load();
   log.info("Settings loaded");
+
+  // Initialize workspace (create if needed, prompt if missing)
+  settings = await initializeWorkspace(settings, async (updated) => {
+    await settingsStore.save(updated);
+    return updated;
+  });
+  log.info("Workspace initialized");
 
   // Start voice server
   await startVoiceService();
@@ -47,14 +56,17 @@ async function createWindow(): Promise<void> {
   registerSecretsHandlers();
   registerProjectHandlers();
   registerExporterHandlers();
+  registerWorkspaceHandlers();
   log.info("IPC handlers registered");
 
   // Load renderer
   const rendererPath = join(__dirname, "../renderer/index.html");
   await mainWindow.loadFile(rendererPath);
 
-  // Open DevTools for debugging
-  mainWindow.webContents.openDevTools();
+  // Open DevTools only in development
+  if (!app.isPackaged || process.env.DEBUG) {
+    mainWindow.webContents.openDevTools();
+  }
 
   mainWindow.on("closed", () => {
     mainWindow = null;

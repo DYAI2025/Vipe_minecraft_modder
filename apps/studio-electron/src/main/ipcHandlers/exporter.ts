@@ -2,6 +2,8 @@ import { ipcMain } from 'electron';
 import path from 'path';
 import { exportProject } from '../../../../../packages/exporter/src/index.js';
 import { safeJoin, assertWorkspace } from '../workspace.js';
+import { settingsStore } from '../settingsStore.js';
+import { getDefaultTemplatePath, getExportDirectory } from '../workspaceManager.js';
 
 export function registerExporterHandlers() {
     /**
@@ -12,9 +14,9 @@ export function registerExporterHandlers() {
         try {
             assertWorkspace(workspaceDir);
 
-            // For now, template is relative to the app or in a fixed location
-            // In a real app, this might be bundled or downloaded.
-            const templateDir = path.join(process.cwd(), 'kidmodstudio_exporter_kit/template');
+            // Get template path from settings or use default
+            const settings = settingsStore.get();
+            const templateDir = settings.workspace.templatePath || getDefaultTemplatePath();
             const outputDir = safeJoin(workspaceDir, 'export');
 
             console.log(`Exporter: Running for ${project.meta.modId} in ${outputDir}`);
