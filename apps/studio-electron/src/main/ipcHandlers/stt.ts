@@ -15,7 +15,8 @@ import {
   type SttStreamEvent,
 } from "@kidmodstudio/ipc-contracts";
 import type { SttProvider } from "../providers/sttProvider.js";
-import { EchoSttProvider } from "../providers/echoSttProvider.js";
+import { createSttProvider } from "../providers/sttProviderFactory.js";
+import { settingsStore } from "../settingsStore.js";
 
 interface StreamSession {
   id: string;
@@ -63,8 +64,10 @@ export function registerSttHandlers(): void {
       };
     }
 
-    // Create provider (using Echo stub for now)
-    const provider = new EchoSttProvider();
+    // Create provider based on settings
+    const settings = settingsStore.get();
+    const provider = createSttProvider(settings);
+    log.info(`[STT] Using provider: ${provider.providerId}`);
     const session: StreamSession = {
       id: req.streamId,
       provider,
