@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data:; connect-src 'self' ws://127.0.0.1:* http://127.0.0.1:* http://localhost:* https://api.openai.com https://api.anthropic.com https://api.elevenlabs.io">
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data:; connect-src 'self' ws://127.0.0.1:* http://127.0.0.1:* http://localhost:* https://api.openai.com https://api.anthropic.com https://api.elevenlabs.io">
   <title>KidModStudio - Baue deinen eigenen Minecraft Mod!</title>
   <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
   <!-- Header -->
   <header class="header">
@@ -107,22 +110,42 @@
       <div class="settings-section">
         <h3>🗣️ Sprachausgabe (TTS)</h3>
         <label class="settings-row">
-          <span>Provider:</span>
-          <select id="tts-provider">
-            <option value="webspeech">🌐 Browser (kostenlos)</option>
-            <option value="openai">🤖 OpenAI</option>
-            <option value="elevenlabs">🎭 ElevenLabs</option>
+          <span>Modus:</span>
+          <select id="tts-mode">
+            <option value="system">💻 System (Einfach)</option>
+            <option value="hq">🚀 Vipe HQ (Realtime)</option>
           </select>
         </label>
-        <label class="settings-row api-key-row" id="tts-api-key-row" style="display: none;">
-          <span>API-Key:</span>
-          <input type="password" id="tts-api-key" placeholder="sk-...">
-          <button class="mc-button small" id="btn-validate-tts-key" title="API-Key prüfen">✓</button>
-        </label>
-        <label class="settings-row">
-          <span>Stimme:</span>
-          <select id="tts-voice"></select>
-        </label>
+
+        <!-- System TTS Settings -->
+        <div id="tts-system-settings">
+          <label class="settings-row">
+            <span>Stimme:</span>
+            <select id="tts-voice"></select>
+          </label>
+        </div>
+
+        <!-- HQ Voice Design Settings -->
+        <div id="tts-hq-settings" style="display: none;">
+          <div class="voice-design-box">
+            <h4>🎙️ Voice Design</h4>
+            <p class="small-hint">Lade eine 10s Aufnahme hoch, damit Crafty so spricht!</p>
+
+            <div class="voice-upload-area" id="voice-upload-dropzone">
+              <span id="voice-file-label">Datei auswählen (.wav)</span>
+              <input type="file" id="voice-upload-input" accept=".wav" style="display: none;">
+              <button class="mc-button small" id="btn-upload-voice">Hochladen</button>
+            </div>
+
+            <label class="settings-row">
+              <span>Aktives Profil:</span>
+              <select id="voice-profile-select">
+                <option value="default">Standard Crafty</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
         <label class="settings-row">
           <span>Geschwindigkeit:</span>
           <input type="range" id="tts-speed" min="0.5" max="2" step="0.1" value="0.9">
@@ -171,6 +194,8 @@
   <script src="craftyBrain.js"></script>
   <script src="voiceController.js"></script>
   <script src="components/chatPanel.js"></script>
+  <script src="voiceFeatures.js"></script>
   <script src="app.js"></script>
 </body>
+
 </html>

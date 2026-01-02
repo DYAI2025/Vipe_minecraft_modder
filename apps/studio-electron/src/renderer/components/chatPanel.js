@@ -82,6 +82,12 @@ class ChatPanel {
   }
 
   speak(text) {
+    // If HQ Voice Mode is enabled, skip local TTS (Python handles it)
+    if (window.voiceFeatures?.hqModeEnabled) {
+      console.log('[ChatPanel] Skipping local TTS (HQ Mode active)');
+      return;
+    }
+
     if (!this.ttsEnabled) {
       console.log('[ChatPanel] TTS disabled');
       return;
@@ -280,6 +286,23 @@ class ChatPanel {
   }
 
   toggleVoice() {
+    // HQ Mode Routing
+    if (window.voiceFeatures?.hqModeEnabled) {
+      if (this.isRecording) {
+        window.voiceFeatures.stopStreaming();
+        this.isRecording = false;
+        this.updateVoiceButton(false);
+        this.updateStatus('stt-status', 'success', 'Fertig.');
+      } else {
+        window.voiceFeatures.startStreaming();
+        this.isRecording = true;
+        this.updateVoiceButton(true);
+        this.updateStatus('stt-status', 'loading', 'Sende Audio...');
+      }
+      return;
+    }
+
+    // Classic Mode Routing
     if (!this.recognition) {
       console.warn('[ChatPanel] STT not available');
       return;

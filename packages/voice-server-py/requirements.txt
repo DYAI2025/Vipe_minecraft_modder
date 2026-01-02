@@ -1,0 +1,19 @@
+--extra-index-url https://download.pytorch.org/whl/cu121
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+python-multipart
+python-dotenv
+websockets
+# RealtimeTTS & STT (Kern-Komponenten)
+realtimetts[coqui,system]>=0.5.5
+realtimestt>=0.3.104
+# Torch components
+torch
+torchaudio
+torchvision
+# LLM Client
+ollama
+# Utilities
+numpy
+scipy
+soundfile

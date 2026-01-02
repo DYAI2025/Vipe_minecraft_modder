@@ -92,7 +92,13 @@ export interface TtsWebSpeechConfig {
   pitch?: number;
 }
 
-export type TtsProviderConfig = TtsOpenAIConfig | TtsElevenLabsConfig | TtsWebSpeechConfig;
+export interface TtsVipeHQConfig {
+  provider: "vipe_hq";
+  voice?: string; // e.g. path
+  speed?: number;
+}
+
+export type TtsProviderConfig = TtsOpenAIConfig | TtsElevenLabsConfig | TtsWebSpeechConfig | TtsVipeHQConfig;
 
 // TTS IPC Types
 export interface TtsSpeakReq {
@@ -216,32 +222,32 @@ export interface SttStreamStatusRes {
 
 export type SttStreamEvent =
   | {
-      streamId: SttStreamId;
-      type: "interim";
-      text: string;
-      confidence?: number;
-      tMs: number;
-    }
+    streamId: SttStreamId;
+    type: "interim";
+    text: string;
+    confidence?: number;
+    tMs: number;
+  }
   | {
-      streamId: SttStreamId;
-      type: "final";
-      text: string;
-      confidence?: number;
-      tMs: number;
-    }
+    streamId: SttStreamId;
+    type: "final";
+    text: string;
+    confidence?: number;
+    tMs: number;
+  }
   | {
-      streamId: SttStreamId;
-      type: "state";
-      state: "ready" | "listening" | "processing" | "done";
-      tMs: number;
-    }
+    streamId: SttStreamId;
+    type: "state";
+    state: "ready" | "listening" | "processing" | "done";
+    tMs: number;
+  }
   | {
-      streamId: SttStreamId;
-      type: "error";
-      message: string;
-      code?: string;
-      tMs: number;
-    };
+    streamId: SttStreamId;
+    type: "error";
+    message: string;
+    code?: string;
+    tMs: number;
+  };
 
 // ============================================================
 // LLM IPC Types

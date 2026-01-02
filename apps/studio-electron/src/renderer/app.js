@@ -566,12 +566,60 @@ function setupSettings() {
   // Test TTS
   testTtsBtn?.addEventListener('click', async () => {
     const text = 'Ssssalut! Ich bin Crafty, dein Minecraft Helfer!';
+    const ttsModeVal = document.getElementById('tts-mode')?.value;
     const provider = ttsProvider?.value;
     const voiceSelect = document.getElementById('tts-voice');
     const voice = voiceSelect?.value;
 
     testTtsBtn.disabled = true;
     testTtsBtn.textContent = '🔊 Spiele...';
+
+    // 1. HQ / Voice Design Mode (Local Python)
+    if (ttsModeVal === 'hq') {
+      // Helper to wait for connection
+      const waitForConnection = async () => {
+        if (!window.voiceFeatures) return false;
+        // Immediate check
+        if (window.voiceFeatures.isConnected) return true;
+
+        // If connecting or closed, try wait/connect
+        if (!window.voiceFeatures.wsControl || window.voiceFeatures.wsControl.readyState !== 1) { // 1 = OPEN
+          if (!window.voiceFeatures.wsControl || window.voiceFeatures.wsControl.readyState === 3) {
+            window.voiceFeatures.connect();
+          }
+
+          // Wait loop (max 3s)
+          for (let i = 0; i < 30; i++) {
+            await new Promise(r => setTimeout(r, 100));
+            if (window.voiceFeatures.isConnected) return true;
+          }
+        }
+        return false;
+      };
+
+      const connected = await waitForConnection();
+
+      if (connected) {
+        console.log('[TTS Test] Sending to HQ Server...');
+        window.voiceFeatures.wsControl.send(JSON.stringify({
+          command: 'chat_text',
+          text: text
+        }));
+
+        setTimeout(() => {
+          testTtsBtn.disabled = false;
+          testTtsBtn.textContent = '🔊 Testen';
+        }, 2000);
+        return;
+      } else {
+        const state = window.voiceFeatures?.wsControl?.readyState;
+        const states = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'];
+        alert(`Fehler: Vipe HQ Server antwortet nicht.\nStatus: ${states[state] || 'UNKNOWN'} (${state})\nURL: ${window.voiceFeatures?.controlUrl}`);
+        testTtsBtn.disabled = false;
+        testTtsBtn.textContent = '🔊 Testen';
+        return;
+      }
+    }
 
     try {
       if (provider === 'webspeech') {
@@ -658,6 +706,54 @@ function setupSettings() {
     populateVoiceSelect(provider);
   });
 
+  // TTS Mode Switch (System vs HQ)
+  const ttsMode = document.getElementById('tts-mode');
+  const systemSettings = document.getElementById('tts-system-settings');
+  const hqSettings = document.getElementById('tts-hq-settings');
+
+  ttsMode?.addEventListener('change', () => {
+    const isHQ = ttsMode.value === 'hq';
+    if (systemSettings) systemSettings.style.display = isHQ ? 'none' : 'block';
+    if (hqSettings) hqSettings.style.display = isHQ ? 'block' : 'none';
+
+    // Notify VoiceFeatures
+    if (window.voiceFeatures) {
+      window.voiceFeatures.hqModeEnabled = isHQ;
+    }
+  });
+
+  // Voice Upload
+  const btnUpload = document.getElementById('btn-upload-voice');
+  const fileInput = document.getElementById('voice-upload-input');
+  const fileLabel = document.getElementById('voice-file-label');
+  const profileSelect = document.getElementById('voice-profile-select');
+
+  if (btnUpload && fileInput) {
+    btnUpload.addEventListener('click', () => fileInput.click());
+
+    fileInput.addEventListener('change', async (e) => {
+      if (e.target.files.length > 0) {
+        const file = e.target.files[0];
+        fileLabel.textContent = file.name;
+
+        btnUpload.textContent = '⏳';
+        try {
+          await window.voiceFeatures.uploadVoice(file);
+          btnUpload.textContent = '✅ Fertig';
+          setTimeout(() => btnUpload.textContent = 'Hochladen', 2000);
+        } catch (err) {
+          alert('Upload fehlgeschlagen');
+          btnUpload.textContent = '❌ Fehler';
+        }
+      }
+    });
+  }
+
+  // Profile Selection
+  profileSelect?.addEventListener('change', () => {
+    window.voiceFeatures.setProfile(profileSelect.value);
+  });
+
   // LLM Provider change
   const llmProvider = document.getElementById('llm-provider');
   const llmApiKeyRow = document.getElementById('llm-api-key-row');
@@ -694,27 +790,40 @@ function setupSettings() {
   });
 
   // Test LLM connection
+  // Test LLM connection
   const testLlmBtn = document.getElementById('btn-test-llm');
   testLlmBtn?.addEventListener('click', async () => {
     testLlmBtn.disabled = true;
     testLlmBtn.textContent = '🔄 Teste...';
 
+    const providerValue = llmProvider?.value || 'ollama';
+
     try {
+      // Direct Local Test for Ollama (Always allow without key)
+      if (providerValue === 'ollama') {
+        const url = document.getElementById('llm-url')?.value || 'http://127.0.0.1:11434/v1';
+        try {
+          const response = await fetch(url.replace('/v1', '/api/tags'));
+          if (response.ok) {
+            alert('✅ Ollama (Lokal) erreichbar!');
+          } else {
+            alert('❌ Ollama antwortet nicht (Port prüfen)');
+          }
+        } catch (e) {
+          alert('❌ Ollama nicht gefunden: ' + e.message);
+        }
+        testLlmBtn.disabled = false;
+        testLlmBtn.textContent = '🧪 Verbindung testen';
+        return;
+      }
+
+      // For other providers (OpenAI, Anthropic), use Bridge
       if (window.kidmod) {
         const result = await window.kidmod.llm.healthCheck({});
         if (result.ok) {
           alert(`✅ Verbindung OK!\nModell: ${result.model}\nLatenz: ${result.latencyMs}ms`);
         } else {
           alert(`❌ Verbindung fehlgeschlagen: ${result.message}`);
-        }
-      } else {
-        // Direct test for Ollama
-        const url = document.getElementById('llm-url')?.value || 'http://127.0.0.1:11434/v1';
-        const response = await fetch(url.replace('/v1', '/api/tags'));
-        if (response.ok) {
-          alert('✅ Ollama erreichbar!');
-        } else {
-          alert('❌ Ollama nicht erreichbar');
         }
       }
     } catch (e) {
@@ -815,23 +924,49 @@ async function loadSettingsToUI() {
   try {
     const settings = await window.kidmod.settings.get();
 
-    document.getElementById('llm-url').value = settings.llm?.providerConfig?.baseUrl || 'http://127.0.0.1:11434/v1';
-    document.getElementById('tts-speed').value = settings.tts?.providerConfig?.speed || 0.9;
-    document.getElementById('tts-speed-value').textContent = (settings.tts?.providerConfig?.speed || 0.9) + 'x';
+    const llmUrlEl = document.getElementById('llm-url');
+    if (llmUrlEl) llmUrlEl.value = settings.llm?.providerConfig?.baseUrl || 'http://127.0.0.1:11434/v1';
+
+    const ttsSpeedEl = document.getElementById('tts-speed');
+    const ttsSpeedValEl = document.getElementById('tts-speed-value');
+    if (ttsSpeedEl) ttsSpeedEl.value = settings.tts?.providerConfig?.speed || 0.9;
+    if (ttsSpeedValEl) ttsSpeedValEl.textContent = (settings.tts?.providerConfig?.speed || 0.9) + 'x';
 
     const ttsProvider = document.getElementById('tts-provider');
     const ttsApiKeyRow = document.getElementById('tts-api-key-row');
+    const ttsMode = document.getElementById('tts-mode');
+
     const provider = settings.tts?.providerConfig?.provider || 'webspeech';
 
-    // Set TTS provider
-    if (provider === 'openai' || provider === 'elevenlabs') {
-      ttsProvider.value = provider;
+    // Set TTS Mode & Provider
+    if (provider === 'vipe_hq') {
+      // HQ Mode
+      if (ttsMode) ttsMode.value = 'hq';
+      if (window.voiceFeatures) window.voiceFeatures.hqModeEnabled = true;
+
+      if (ttsProvider) ttsProvider.value = 'webspeech'; // Fallback value
+      useWebSpeechTTS = false;
+      if (ttsApiKeyRow) ttsApiKeyRow.style.display = 'none';
+
+    } else if (provider === 'openai' || provider === 'elevenlabs') {
+      if (ttsMode) ttsMode.value = 'system';
+      if (window.voiceFeatures) window.voiceFeatures.hqModeEnabled = false;
+
+      if (ttsProvider) ttsProvider.value = provider;
       useWebSpeechTTS = false;
       if (ttsApiKeyRow) ttsApiKeyRow.style.display = 'flex';
     } else {
-      ttsProvider.value = 'webspeech';
+      if (ttsMode) ttsMode.value = 'system';
+      if (window.voiceFeatures) window.voiceFeatures.hqModeEnabled = false;
+
+      if (ttsProvider) ttsProvider.value = 'webspeech';
       useWebSpeechTTS = true;
       if (ttsApiKeyRow) ttsApiKeyRow.style.display = 'none';
+    }
+
+    // Trigger UI update to show/hide sections
+    if (ttsMode) {
+      ttsMode.dispatchEvent(new Event('change'));
     }
 
     // Update voice options for the selected provider
@@ -862,26 +997,44 @@ async function saveSettingsFromUI() {
   if (!window.kidmod) return;
 
   try {
-    const ttsProviderValue = document.getElementById('tts-provider').value;
-    useWebSpeechTTS = ttsProviderValue === 'webspeech';
+    const ttsModeEl = document.getElementById('tts-mode');
+    const ttsProviderEl = document.getElementById('tts-provider');
+
+    // Determine effective provider
+    let effectiveProvider = 'webspeech';
+
+    if (ttsModeEl && ttsModeEl.value === 'hq') {
+      effectiveProvider = 'vipe_hq';
+      // Also update runtime state immediately
+      if (window.voiceFeatures) window.voiceFeatures.hqModeEnabled = true;
+    } else {
+      effectiveProvider = ttsProviderEl ? ttsProviderEl.value : 'webspeech';
+      if (window.voiceFeatures) window.voiceFeatures.hqModeEnabled = false;
+    }
+
+    useWebSpeechTTS = effectiveProvider === 'webspeech';
 
     const ttsApiKey = document.getElementById('tts-api-key')?.value;
     const llmApiKey = document.getElementById('llm-api-key')?.value;
     const voiceSelect = document.getElementById('tts-voice');
     const selectedVoice = voiceSelect?.value;
 
+    const llmUrlEl = document.getElementById('llm-url');
+    const llmModelEl = document.getElementById('llm-model');
+    const ttsSpeedEl = document.getElementById('tts-speed');
+
     const patch = {
       llm: {
         providerConfig: {
           provider: 'openai_compatible',
-          baseUrl: document.getElementById('llm-url').value,
-          model: document.getElementById('llm-model').value,
+          baseUrl: llmUrlEl?.value || 'http://127.0.0.1:11434/v1',
+          model: llmModelEl?.value || 'llama3.2:latest',
         }
       },
       tts: {
         providerConfig: {
-          provider: ttsProviderValue,
-          speed: parseFloat(document.getElementById('tts-speed').value),
+          provider: effectiveProvider,
+          speed: ttsSpeedEl ? parseFloat(ttsSpeedEl.value) : 0.9,
           voice: selectedVoice,
         }
       }
