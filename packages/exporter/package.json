@@ -1,0 +1,14 @@
+{
+    "name": "@kidmodstudio/exporter",
+    "version": "1.0.0",
+    "type": "module",
+    "main": "src/index.ts",
+    "dependencies": {
+        "@kidmodstudio/core-model": "workspace:*",
+        "fs-extra": "^11.1.0"
+    },
+    "devDependencies": {
+        "@types/fs-extra": "^11.0.1",
+        "vitest": "^1.0.0"
+    }
+}

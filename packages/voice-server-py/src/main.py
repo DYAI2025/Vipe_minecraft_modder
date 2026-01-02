@@ -2,10 +2,23 @@ import os
 import logging
 import asyncio
 import json
+import uuid
+from datetime import datetime
+from typing import Optional
 from fastapi import FastAPI, WebSocket, UploadFile, File, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import uvicorn
+
+# Generated schemas
+from schemas_generated import (
+    AnyEvent, VoiceChunkEvent, VoiceChunkPayload,
+    SttFinalEvent, SttFinalPayload,
+    ChatQueryEvent, ErrorRaisedEvent, ErrorRaisedPayload,
+    VoiceStartEvent, VoiceStartPayload,
+    SttPartialEvent, SttPartialPayload,
+    LlmTextEvent, LlmTextPayload
+)
 
 from services.llm_engine import LLMEngine
 from services.audio_engine import AudioEngine
@@ -21,9 +34,21 @@ class VoiceServerState:
         self.llm = LLMEngine()
         self.audio = AudioEngine()
         self.stt = STTEngine()
-        self.active_socket: WebSocket = None # Single user focus for now
+        self.active_socket: Optional[WebSocket] = None
+        self.source_id = "voice-server-py"
+
+    def make_envelope(self, event_type: str, payload: any, severity: str = "info"):
+        return {
+            "type": event_type,
+            "traceId": str(uuid.uuid4()),
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "source": self.source_id,
+            "severity": severity,
+            "payload": payload
+        }
 
 state = VoiceServerState()
+loop = asyncio.new_event_loop()
 
 # Callback for STT -> LLM -> TTS pipeline
 def on_stt_transcription(text: str):
@@ -32,40 +57,43 @@ def on_stt_transcription(text: str):
         return
         
     if state.active_socket:
-        # Notify Client "I heard you"
-        asyncio.run_coroutine_threadsafe(
-            state.active_socket.send_json({"type": "transcription", "text": text}),
-            loop
-        )
-        # Trigger LLM/TTS Pipeline
-        asyncio.run_coroutine_threadsafe(
-            process_text_input(text),
-            loop
-        )
+        # Dispatch STT_FINAL event
+        event = state.make_envelope("stt.final", {"text": text, "confidence": 1.0, "final": True})
+        asyncio.run_coroutine_threadsafe(state.active_socket.send_json(event), loop)
+        
+        # Trigger LLM Pipeline
+        asyncio.run_coroutine_threadsafe(process_text_input(text), loop)
 
 async def process_text_input(text: str):
     logger.info(f"🤖 Processing: {text}")
-    # 1. LLM Stream
+    
+    # 1. Dispatch Pipeline Status (Start)
+    if state.active_socket:
+        await state.active_socket.send_json(state.make_envelope("pipeline.status", {
+            "pipelineId": "voice_chat",
+            "step": "llm",
+            "state": "start"
+        }))
+
+    # 2. LLM Stream
     stream = state.llm.chat_stream(text)
     
-    # 2. TTS Stream
-    if state.active_socket:
-         await state.active_socket.send_json({"type": "status", "status": "thinking"})
-         
-    # Run blocking TTS in thread
+    # 3. TTS Stream (Blocking in thread)
+    # We could dispatch llm.text events here if the stream was async
     await asyncio.to_thread(state.audio.speak_stream, stream)
     
+    # 4. Dispatch Pipeline Status (Done)
     if state.active_socket:
-         await state.active_socket.send_json({"type": "status", "status": "done"})
-
-# Define global loop for threadsafe calls
-loop = asyncio.new_event_loop()
-asyncio.set_event_loop(loop)
+        await state.active_socket.send_json(state.make_envelope("pipeline.status", {
+            "pipelineId": "voice_chat",
+            "step": "tts",
+            "state": "done"
+        }))
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("🎤 Voice Server starting...")
-    # Init STT with callback
+    asyncio.set_event_loop(loop)
     state.stt.start(on_stt_transcription)
     yield
     logger.info("🎤 Voice Server shutting down...")
@@ -84,48 +112,52 @@ app.add_middleware(
 async def control_endpoint(websocket: WebSocket):
     await websocket.accept()
     state.active_socket = websocket
-    print("DEBUG: Client connected")
+    logger.info("Client connected to Jarvis Protocol")
     
     try:
         while True:
-            # Receive can be text (JSON) or bytes (Audio)
             message = await websocket.receive()
-            # print(f"DEBUG keys: {message.keys()}")
             
+            # 1. Handle Binary Audio (voice.chunk)
             if "bytes" in message and message["bytes"] is not None:
-                # Audio Chunk
                 pcm_data = message["bytes"]
-                if len(pcm_data) > 0:
-                    print(f"DEBUG: Received Audio Chunk {len(pcm_data)}")
-                
-                # Feed to STT
+                # Forward to STT
                 await asyncio.to_thread(state.stt.feed_pcm, pcm_data)
                 
+            # 2. Handle Structured Events (Jarvis Protocol)
             elif "text" in message:
-                print(f"DEBUG: Msg Text: {message['text']}")
                 try:
-                    data = json.loads(message["text"])
-                    command = data.get("command")
+                    raw_data = json.loads(message["text"])
+                    # Validate against AnyEvent union
+                    event = AnyEvent.model_validate(raw_data)
                     
-                    if command == "set_profile":
-                        profile_path = data.get("path")
-                        if profile_path and os.path.exists(profile_path):
-                            state.audio.set_voice(profile_path)
-                            await websocket.send_json({"status": "profile_set", "path": profile_path})
-                            
-                    elif command == "chat_text":
-                        text = data.get("text")
-                        if text:
-                            await process_text_input(text)
-                            
-                except json.JSONDecodeError:
-                    print("Warning: Invalid JSON received")
+                    if event.type == "chat.query":
+                        await process_text_input(event.payload.text)
+                    
+                    elif event.type == "ui.command":
+                        if event.payload.command == "set_profile":
+                            path = event.payload.args.get("path")
+                            if path and os.path.exists(path):
+                                state.audio.set_voice(path)
+                                await websocket.send_json(state.make_envelope("ui.feedback", {
+                                    "target": "voice_profile",
+                                    "helpful": True,
+                                    "note": f"Profile set to {path}"
+                                }))
+
+                except Exception as e:
+                    logger.warning(f"Event validation failed: {e}")
+                    await websocket.send_json(state.make_envelope("error.raised", {
+                        "code": "E_PROTOCOL",
+                        "message": str(e),
+                        "recoverable": True
+                    }, severity="warn"))
 
     except WebSocketDisconnect:
-        print("DEBUG: Client disconnected")
+        logger.info("Client disconnected")
         state.active_socket = None
     except Exception as e:
-        print(f"DEBUG: Error: {e}")
+        logger.error(f"Unexpected error in websocket: {e}")
         state.active_socket = None
 
 @app.post("/upload_voice")
@@ -141,4 +173,4 @@ async def upload_voice(file: UploadFile = File(...)):
     return {"filename": file.filename, "path": os.path.abspath(file_path)}
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="127.0.0.1", port=3850, reload=True)
+    uvicorn.run("main:app", host="127.0.0.1", port=3850, reload=False)

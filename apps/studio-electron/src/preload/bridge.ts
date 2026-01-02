@@ -17,6 +17,9 @@ const IPC = {
   settingsUpdate: "settings.update",
   secretSet: "secret.set",
   secretDelete: "secret.delete",
+  projectSave: "project:save",
+  projectLoad: "project:load",
+  exporterRun: "exporter:run",
 } as const;
 
 // Types (simplified for preload)
@@ -25,13 +28,13 @@ type SttStreamPushReq = { streamId: string; pcm16le: Uint8Array };
 type SttStreamStopReq = { streamId: string };
 type SttStreamCancelReq = { streamId: string };
 type SttStreamStatusReq = { streamId: string };
-type SttStreamEvent = { streamId: string; type: string; [key: string]: unknown };
+type SttStreamEvent = { streamId: string; type: string;[key: string]: unknown };
 type LlmHealthCheckReq = Record<string, unknown>;
-type LlmCompleteJSONReq = { requestId: string; [key: string]: unknown };
+type LlmCompleteJSONReq = { requestId: string;[key: string]: unknown };
 type SettingsConfig = Record<string, unknown>;
-type TtsSpeakReq = { requestId: string; text: string; [key: string]: unknown };
+type TtsSpeakReq = { requestId: string; text: string;[key: string]: unknown };
 type TtsStopReq = Record<string, unknown>;
-type TtsStreamEvent = { type: string; [key: string]: unknown };
+type TtsStreamEvent = { type: string;[key: string]: unknown };
 
 const MAX_STREAM_ID_LENGTH = 64;
 const MAX_CHUNK_SIZE = 65536; // 64KB
@@ -151,6 +154,19 @@ const bridge = {
         throw new Error("Invalid key");
       }
       return ipcRenderer.invoke(IPC.secretDelete, key);
+    },
+  },
+  project: {
+    save: async (req: { workspaceDir: string; project: unknown }) => {
+      return ipcRenderer.invoke(IPC.projectSave, req);
+    },
+    load: async (req: { workspaceDir: string }) => {
+      return ipcRenderer.invoke(IPC.projectLoad, req);
+    },
+  },
+  exporter: {
+    run: async (req: { workspaceDir: string; project: unknown }) => {
+      return ipcRenderer.invoke(IPC.exporterRun, req);
     },
   },
 };

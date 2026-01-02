@@ -8,7 +8,9 @@ import { registerLlmHandlers } from "./ipcHandlers/llm.js";
 import { registerSettingsHandlers } from "./ipcHandlers/settings.js";
 import { registerTtsHandlers } from "./ipcHandlers/tts.register.js";
 import { registerSecretsHandlers } from "./ipcHandlers/secrets.js";
-import { startVoiceServer, stopVoiceServer } from "./voiceServer.js";
+import { registerProjectHandlers } from "./ipcHandlers/project.js";
+import { registerExporterHandlers } from "./ipcHandlers/exporter.js";
+import { startVoiceService, stopVoiceService } from "./voiceService.js";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
@@ -23,8 +25,8 @@ async function createWindow(): Promise<void> {
   log.info("Settings loaded");
 
   // Start voice server
-  await startVoiceServer();
-  log.info("Voice server started");
+  await startVoiceService();
+  log.info("Voice service started");
 
   mainWindow = new BrowserWindow({
     width: 1200,
@@ -43,6 +45,8 @@ async function createWindow(): Promise<void> {
   registerSettingsHandlers();
   registerTtsHandlers();
   registerSecretsHandlers();
+  registerProjectHandlers();
+  registerExporterHandlers();
   log.info("IPC handlers registered");
 
   // Load renderer
@@ -68,7 +72,7 @@ app.on("window-all-closed", () => {
 });
 
 app.on("before-quit", () => {
-  stopVoiceServer();
+  stopVoiceService();
 });
 
 app.on("activate", () => {

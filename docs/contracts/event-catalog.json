@@ -1,0 +1,653 @@
+{
+    "catalogVersion": "0.1",
+    "envelope": {
+        "fields": [
+            "type",
+            "traceId",
+            "ts",
+            "source",
+            "severity",
+            "payload"
+        ],
+        "severityEnum": [
+            "debug",
+            "info",
+            "warn",
+            "error"
+        ]
+    },
+    "primitives": [
+        "string",
+        "int",
+        "float",
+        "boolean",
+        "datetime",
+        "any"
+    ],
+    "payloadTypes": {
+        "StreamStartPayload": {
+            "streamId": {
+                "type": "string"
+            },
+            "meta": {
+                "type": "record",
+                "optional": true,
+                "values": {
+                    "type": "any"
+                }
+            }
+        },
+        "StreamChunkPayload": {
+            "streamId": {
+                "type": "string"
+            },
+            "seq": {
+                "type": "int"
+            },
+            "data": {
+                "type": "record",
+                "values": {
+                    "type": "any"
+                }
+            }
+        },
+        "StreamEndPayload": {
+            "streamId": {
+                "type": "string"
+            },
+            "reason": {
+                "type": "string",
+                "optional": true
+            }
+        },
+        "VoiceStartPayload": {
+            "sampleRate": {
+                "type": "int"
+            },
+            "format": {
+                "type": "enum",
+                "values": [
+                    "pcm16",
+                    "f32"
+                ]
+            },
+            "channels": {
+                "type": "int"
+            }
+        },
+        "VoiceChunkPayload": {
+            "seq": {
+                "type": "int"
+            },
+            "bytesB64": {
+                "type": "string"
+            },
+            "ms": {
+                "type": "int"
+            }
+        },
+        "VoiceEndPayload": {
+            "totalMs": {
+                "type": "int"
+            }
+        },
+        "SttPartialPayload": {
+            "text": {
+                "type": "string"
+            },
+            "confidence": {
+                "type": "float"
+            },
+            "final": {
+                "type": "literal",
+                "value": false
+            }
+        },
+        "SttFinalPayload": {
+            "text": {
+                "type": "string"
+            },
+            "confidence": {
+                "type": "float"
+            },
+            "final": {
+                "type": "literal",
+                "value": true
+            }
+        },
+        "ChatQueryPayload": {
+            "text": {
+                "type": "string"
+            },
+            "locale": {
+                "type": "string",
+                "optional": true
+            },
+            "sessionId": {
+                "type": "string"
+            }
+        },
+        "ChatPromptPayload": {
+            "messages": {
+                "type": "array",
+                "items": {
+                    "type": "any"
+                }
+            },
+            "system": {
+                "type": "string",
+                "optional": true
+            },
+            "tools": {
+                "type": "array",
+                "optional": true,
+                "items": {
+                    "type": "any"
+                }
+            }
+        },
+        "LlmTokenPayload": {
+            "text": {
+                "type": "string"
+            },
+            "seq": {
+                "type": "int"
+            }
+        },
+        "LlmTextPayload": {
+            "text": {
+                "type": "string"
+            }
+        },
+        "LlmCompletePayload": {
+            "text": {
+                "type": "string"
+            },
+            "usage": {
+                "type": "record",
+                "optional": true,
+                "values": {
+                    "type": "any"
+                }
+            }
+        },
+        "TtsStartPayload": {
+            "voice": {
+                "type": "string"
+            },
+            "format": {
+                "type": "enum",
+                "values": [
+                    "pcm16",
+                    "wav",
+                    "mp3"
+                ]
+            },
+            "sampleRate": {
+                "type": "int"
+            }
+        },
+        "TtsAudioPayload": {
+            "seq": {
+                "type": "int"
+            },
+            "bytesB64": {
+                "type": "string"
+            },
+            "ms": {
+                "type": "int"
+            }
+        },
+        "TtsVisemeTimingPayload": {
+            "visemes": {
+                "type": "array",
+                "items": {
+                    "type": "any"
+                }
+            },
+            "timingMs": {
+                "type": "array",
+                "items": {
+                    "type": "int"
+                }
+            }
+        },
+        "TtsEndPayload": {
+            "totalMs": {
+                "type": "int"
+            }
+        },
+        "AvatarStartPayload": {
+            "fps": {
+                "type": "int"
+            },
+            "format": {
+                "type": "enum",
+                "values": [
+                    "rgb",
+                    "yuv"
+                ]
+            },
+            "resolution": {
+                "type": "string"
+            }
+        },
+        "AvatarFramePayload": {
+            "seq": {
+                "type": "int"
+            },
+            "imageB64": {
+                "type": "string"
+            }
+        },
+        "AvatarEndPayload": {
+            "totalFrames": {
+                "type": "int"
+            }
+        },
+        "RagQueryPayload": {
+            "text": {
+                "type": "string"
+            },
+            "topK": {
+                "type": "int",
+                "optional": true
+            }
+        },
+        "RagHit": {
+            "sourceId": {
+                "type": "string"
+            },
+            "title": {
+                "type": "string",
+                "optional": true
+            },
+            "snippet": {
+                "type": "string"
+            },
+            "score": {
+                "type": "float"
+            },
+            "loc": {
+                "type": "record",
+                "optional": true,
+                "values": {
+                    "type": "any"
+                }
+            }
+        },
+        "RagContextPayload": {
+            "hits": {
+                "type": "array",
+                "items": {
+                    "type": "ref",
+                    "name": "RagHit"
+                }
+            }
+        },
+        "ToolRequestPayload": {
+            "tool": {
+                "type": "string"
+            },
+            "action": {
+                "type": "string"
+            },
+            "params": {
+                "type": "record",
+                "values": {
+                    "type": "any"
+                }
+            },
+            "capabilityTier": {
+                "type": "enum",
+                "values": [
+                    "read_only",
+                    "write_local_confirm",
+                    "destructive_two_step",
+                    "network_off_by_default"
+                ]
+            },
+            "requiresConfirm": {
+                "type": "boolean"
+            }
+        },
+        "ToolResultPayload": {
+            "ok": {
+                "type": "boolean"
+            },
+            "data": {
+                "type": "record",
+                "optional": true,
+                "values": {
+                    "type": "any"
+                }
+            },
+            "error": {
+                "type": "any",
+                "optional": true
+            }
+        },
+        "FsChangedPayload": {
+            "path": {
+                "type": "string"
+            },
+            "kind": {
+                "type": "enum",
+                "values": [
+                    "create",
+                    "modify",
+                    "delete"
+                ]
+            },
+            "ts": {
+                "type": "datetime"
+            }
+        },
+        "SystemHealthPayload": {
+            "cpu": {
+                "type": "float"
+            },
+            "ram": {
+                "type": "float"
+            },
+            "vram": {
+                "type": "float"
+            },
+            "disk": {
+                "type": "float"
+            }
+        },
+        "GitBuildFailedPayload": {
+            "project": {
+                "type": "string"
+            },
+            "logPath": {
+                "type": "string"
+            },
+            "exitCode": {
+                "type": "int"
+            }
+        },
+        "NudgeProposalPayload": {
+            "title": {
+                "type": "string"
+            },
+            "reason": {
+                "type": "string"
+            },
+            "severity": {
+                "type": "enum",
+                "values": [
+                    "low",
+                    "medium",
+                    "high",
+                    "critical"
+                ]
+            },
+            "suggestedActions": {
+                "type": "array",
+                "optional": true,
+                "items": {
+                    "type": "any"
+                }
+            },
+            "channel": {
+                "type": "enum",
+                "values": [
+                    "dashboard_only",
+                    "toast",
+                    "voice",
+                    "avatar"
+                ]
+            }
+        },
+        "NudgeDispatchPayload": {
+            "proposalId": {
+                "type": "string"
+            },
+            "channel": {
+                "type": "enum",
+                "values": [
+                    "dashboard_only",
+                    "toast",
+                    "voice",
+                    "avatar"
+                ]
+            },
+            "rateLimited": {
+                "type": "boolean"
+            }
+        },
+        "UiCommandPayload": {
+            "command": {
+                "type": "string"
+            },
+            "args": {
+                "type": "record",
+                "optional": true,
+                "values": {
+                    "type": "any"
+                }
+            }
+        },
+        "UiFeedbackPayload": {
+            "target": {
+                "type": "string"
+            },
+            "helpful": {
+                "type": "boolean"
+            },
+            "note": {
+                "type": "string",
+                "optional": true
+            }
+        },
+        "UiInterruptibilityPayload": {
+            "mode": {
+                "type": "enum",
+                "values": [
+                    "dnd",
+                    "focus",
+                    "available"
+                ]
+            }
+        },
+        "TurnStartPayload": {
+            "sessionId": {
+                "type": "string"
+            },
+            "inputType": {
+                "type": "enum",
+                "values": [
+                    "text",
+                    "voice",
+                    "event"
+                ]
+            }
+        },
+        "TurnEndPayload": {
+            "sessionId": {
+                "type": "string"
+            },
+            "outcome": {
+                "type": "enum",
+                "values": [
+                    "ok",
+                    "error"
+                ]
+            }
+        },
+        "PipelineStatusPayload": {
+            "pipelineId": {
+                "type": "string"
+            },
+            "step": {
+                "type": "string"
+            },
+            "state": {
+                "type": "enum",
+                "values": [
+                    "start",
+                    "done",
+                    "error"
+                ]
+            }
+        },
+        "LedgerEntryPayload": {
+            "actorSkill": {
+                "type": "string"
+            },
+            "action": {
+                "type": "string"
+            },
+            "targets": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                }
+            },
+            "beforeHash": {
+                "type": "string",
+                "optional": true
+            },
+            "afterHash": {
+                "type": "string",
+                "optional": true
+            },
+            "ts": {
+                "type": "datetime"
+            }
+        },
+        "ErrorRaisedPayload": {
+            "code": {
+                "type": "string"
+            },
+            "message": {
+                "type": "string"
+            },
+            "details": {
+                "type": "record",
+                "optional": true,
+                "values": {
+                    "type": "any"
+                }
+            },
+            "recoverable": {
+                "type": "boolean"
+            }
+        }
+    },
+    "events": {
+        "stream.start": {
+            "payload": "StreamStartPayload"
+        },
+        "stream.chunk": {
+            "payload": "StreamChunkPayload"
+        },
+        "stream.end": {
+            "payload": "StreamEndPayload"
+        },
+        "voice.start": {
+            "payload": "VoiceStartPayload"
+        },
+        "voice.chunk": {
+            "payload": "VoiceChunkPayload"
+        },
+        "voice.end": {
+            "payload": "VoiceEndPayload"
+        },
+        "stt.partial": {
+            "payload": "SttPartialPayload"
+        },
+        "stt.final": {
+            "payload": "SttFinalPayload"
+        },
+        "chat.query": {
+            "payload": "ChatQueryPayload"
+        },
+        "chat.prompt": {
+            "payload": "ChatPromptPayload"
+        },
+        "llm.token": {
+            "payload": "LlmTokenPayload"
+        },
+        "llm.text": {
+            "payload": "LlmTextPayload"
+        },
+        "llm.complete": {
+            "payload": "LlmCompletePayload"
+        },
+        "tts.start": {
+            "payload": "TtsStartPayload"
+        },
+        "tts.audio": {
+            "payload": "TtsAudioPayload"
+        },
+        "tts.viseme_timing": {
+            "payload": "TtsVisemeTimingPayload"
+        },
+        "tts.end": {
+            "payload": "TtsEndPayload"
+        },
+        "avatar.start": {
+            "payload": "AvatarStartPayload"
+        },
+        "avatar.frame": {
+            "payload": "AvatarFramePayload"
+        },
+        "avatar.end": {
+            "payload": "AvatarEndPayload"
+        },
+        "rag.query": {
+            "payload": "RagQueryPayload"
+        },
+        "rag.context": {
+            "payload": "RagContextPayload"
+        },
+        "tool.request": {
+            "payload": "ToolRequestPayload"
+        },
+        "tool.result": {
+            "payload": "ToolResultPayload"
+        },
+        "event.fs.changed": {
+            "payload": "FsChangedPayload"
+        },
+        "event.system.health": {
+            "payload": "SystemHealthPayload"
+        },
+        "event.git.build_failed": {
+            "payload": "GitBuildFailedPayload"
+        },
+        "nudge.proposal": {
+            "payload": "NudgeProposalPayload"
+        },
+        "nudge.dispatch": {
+            "payload": "NudgeDispatchPayload"
+        },
+        "ui.command": {
+            "payload": "UiCommandPayload"
+        },
+        "ui.feedback": {
+            "payload": "UiFeedbackPayload"
+        },
+        "ui.interruptibility": {
+            "payload": "UiInterruptibilityPayload"
+        },
+        "turn.start": {
+            "payload": "TurnStartPayload"
+        },
+        "turn.end": {
+            "payload": "TurnEndPayload"
+        },
+        "pipeline.status": {
+            "payload": "PipelineStatusPayload"
+        },
+        "ledger.entry": {
+            "payload": "LedgerEntryPayload"
+        },
+        "error.raised": {
+            "payload": "ErrorRaisedPayload"
+        }
+    }
+}

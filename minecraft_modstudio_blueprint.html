@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Minecraft Mod Studio for Kids - Detailed Blueprint</title>
+<style>
+:root {
+  --bg:#0b0f14; --panel:#121826; --text:#e6edf3; --muted:#9aa4b2; --border:#223047;
+  --accent:#7dd3fc; --codebg:#0f172a; --shadow:0 10px 25px rgba(0,0,0,.35);
+  --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+}
+@media (prefers-color-scheme: light) {
+  :root { --bg:#f7fafc; --panel:#fff; --text:#0b1220; --muted:#4a5568; --border:#e2e8f0; --accent:#0369a1; --codebg:#f1f5f9; --shadow:0 10px 25px rgba(0,0,0,.08); }
+}
+body { margin:0; background:var(--bg); color:var(--text); font-family:var(--sans); line-height:1.55; }
+header { position:sticky; top:0; z-index:10; border-bottom:1px solid var(--border); backdrop-filter: blur(10px); background: rgba(18,24,38,.88); }
+@media (prefers-color-scheme: light) { header { background: rgba(255,255,255,.92); } }
+.wrap { max-width:1200px; margin:0 auto; padding:16px 18px; }
+h1 { margin:0 0 4px 0; font-size:22px; }
+.sub { color:var(--muted); font-size:13px; }
+main { max-width:1200px; margin:0 auto; padding:18px; display:grid; grid-template-columns:280px 1fr; gap:18px; }
+@media (max-width:980px) { main { grid-template-columns:1fr; } nav { position:relative; top:0; } }
+nav { position:sticky; top:86px; align-self:start; background:var(--panel); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow); padding:14px; }
+nav h2 { margin:0 0 10px 0; font-size:13px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; }
+nav ul { list-style:none; padding:0; margin:0; display:grid; gap:8px; }
+nav li { padding:8px 10px; border-radius:10px; border:1px solid transparent; }
+nav li:hover { border-color:var(--border); background: rgba(125,211,252,.06); }
+nav a { color:var(--text); text-decoration:none; }
+nav a:hover { color:var(--accent); }
+input[type=search] { width:100%; padding:10px; border-radius:10px; border:1px solid var(--border); background:transparent; color:var(--text); outline:none; }
+.hint { color:var(--muted); font-size:12px; margin-top:8px; }
+section { background:var(--panel); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow); padding:16px; margin-bottom:18px; }
+section h2 { margin:0 0 10px 0; font-size:18px; }
+.muted { color:var(--muted); }
+details { border:1px solid var(--border); border-radius:12px; padding:10px 12px; margin:10px 0; background: rgba(0,0,0,.06); }
+@media (prefers-color-scheme: light) { details { background: rgba(2,6,23,.03); } }
+summary { cursor:pointer; font-weight:600; }
+pre { background:var(--codebg); border:1px solid var(--border); border-radius:12px; padding:12px; overflow-x:auto; font-family:var(--mono); font-size:12px; line-height:1.45; }
+code { font-family:var(--mono); }
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th,td { border-bottom:1px solid var(--border); padding:10px 8px; vertical-align:top; }
+th { color:var(--muted); font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:.08em; }
+.pill { display:inline-block; padding:2px 8px; border-radius:999px; border:1px solid var(--border); color:var(--muted); font-size:12px; }
+.hidden { display:none !important; }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>Minecraft Mod Studio for Kids - Detailed Blueprint</h1>
+    <div class="sub">Generated: 2026-01-02 | Complete blueprint: BOM + Architecture + Contracts + Checklists</div>
+  </div>
+</header>
+
+<main>
+  <nav aria-label="Table of contents">
+    <h2>Contents</h2>
+    <ul>
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#bom">Bill of Materials (BOM)</a></li>
+      <li><a href="#architecture">Architecture</a></li>
+      <li><a href="#contracts">Contracts</a></li>
+      <li><a href="#assembly">Assembly Plan Checklist</a></li>
+      <li><a href="#patchplan">Task Breakdown by File</a></li>
+      <li><a href="#errors">Error Catalog</a></li>
+    </ul>
+    <div style="margin-top:12px;">
+      <input id="q" type="search" placeholder="Filter sections (type to hide non-matches)"/>
+      <div class="hint">Tip: Ctrl+F still works for full text.</div>
+    </div>
+  </nav>
+
+  <div>
+    <section id="overview" data-section>
+      <h2>Overview</h2>
+      <p>
+        Repo: <span class="pill">minecraft-modstudio-kids-main</span>.
+        Layers: Renderer (React/Three) -&gt; Preload (window.KidMod) -&gt; Main (IPC/FS/Pipeline) -&gt; Packages (core-model/exporter/testbot).
+      </p>
+      <details>
+        <summary>Important note (prototype placeholders)</summary>
+        <p class="muted">Some TS files contain placeholders ("..."). The contracts below define the intended stable system; implement using the assembly plan.</p>
+      </details>
+    </section>
+
+    <section id="bom" data-section>
+      <h2>Bill of Materials (BOM)</h2>
+      <p class="muted">All identified components (91).</p>
+      <table>
+        <thead><tr><th>ID</th><th>Path</th><th>Purpose</th></tr></thead>
+        <tbody>
+<tr><td><code>R01</code></td><td><code>.github/workflows/ci.yml</code></td><td>CI Pipeline: install/lint/build/test (pnpm)</td></tr>
+<tr><td><code>R02</code></td><td><code>.gitignore</code></td><td>Git ignore rules</td></tr>
+<tr><td><code>R03</code></td><td><code>package.json</code></td><td>Monorepo root scripts (pnpm -r build/test/lint, dev, clean)</td></tr>
+<tr><td><code>R04</code></td><td><code>pnpm-lock.yaml</code></td><td>Lockfile (dependency snapshots)</td></tr>
+<tr><td><code>R05</code></td><td><code>pnpm-workspace.yaml</code></td><td>Workspace definition: apps/*, packages/*, tools/*</td></tr>
+<tr><td><code>R06</code></td><td><code>tsconfig.base.json</code></td><td>Shared TS compiler options (NodeNext, ES2022, composite)</td></tr>
+<tr><td><code>S01</code></td><td><code>tools/scripts/dev.sh</code></td><td>Dev start: prereq checks, pnpm install, start renderer dev</td></tr>
+<tr><td><code>S02</code></td><td><code>tools/scripts/pack-release.sh</code></td><td>Release dry run packaging (build packages, build app)</td></tr>
+<tr><td><code>H01</code></td><td><code>apps/studio-electron/resources/help/blocks.md</code></td><td>Help: Blocks</td></tr>
+<tr><td><code>H02</code></td><td><code>apps/studio-electron/resources/help/items.md</code></td><td>Help: Items</td></tr>
+<tr><td><code>H03</code></td><td><code>apps/studio-electron/resources/help/export.md</code></td><td>Help: Export/Test</td></tr>
+<tr><td><code>H04</code></td><td><code>apps/studio-electron/ui_test_report.md</code></td><td>UI/UX test report (browser walkthrough)</td></tr>
+<tr><td><code>K01</code></td><td><code>apps/studio-electron/package.json</code></td><td>Electron app scripts + electron-builder config</td></tr>
+<tr><td><code>K02</code></td><td><code>apps/studio-electron/vite.config.ts</code></td><td>Vite build for renderer (base ./, alias core-model src)</td></tr>
+<tr><td><code>K03</code></td><td><code>packages/core-model/package.json</code></td><td>Domain package (zod, vitest)</td></tr>
+<tr><td><code>K04</code></td><td><code>packages/core-model/tsconfig.json</code></td><td>TS build config (composite)</td></tr>
+<tr><td><code>K05</code></td><td><code>packages/core-model/tsconfig.tsbuildinfo</code></td><td>TS incremental cache</td></tr>
+<tr><td><code>K06</code></td><td><code>packages/docs-mcp/package.json</code></td><td>Stub package</td></tr>
+<tr><td><code>K07</code></td><td><code>packages/docs-mcp/tsconfig.json</code></td><td>TS build config</td></tr>
+<tr><td><code>K08</code></td><td><code>packages/docs-mcp/tsconfig.tsbuildinfo</code></td><td>TS incremental cache</td></tr>
+<tr><td><code>K09</code></td><td><code>packages/exporter/package.json</code></td><td>Exporter package</td></tr>
+<tr><td><code>K10</code></td><td><code>packages/exporter/tsconfig.json</code></td><td>TS build config</td></tr>
+<tr><td><code>K11</code></td><td><code>packages/exporter/tsconfig.tsbuildinfo</code></td><td>TS incremental cache</td></tr>
+<tr><td><code>K12</code></td><td><code>packages/testbot/package.json</code></td><td>Testbot package</td></tr>
+<tr><td><code>K13</code></td><td><code>packages/testbot/tsconfig.json</code></td><td>TS build config</td></tr>
+<tr><td><code>K14</code></td><td><code>packages/testbot/tsconfig.tsbuildinfo</code></td><td>TS incremental cache</td></tr>
+<tr><td><code>E01</code></td><td><code>apps/studio-electron/src/main/index.ts</code></td><td>App bootstrap (BrowserWindow, wiring services)</td></tr>
+<tr><td><code>E02</code></td><td><code>apps/studio-electron/src/main/ipc.ts</code></td><td>IPC handler (workspace select, save/load stubs, ops/ai stubs)</td></tr>
+<tr><td><code>E03</code></td><td><code>apps/studio-electron/src/main/buildService.ts</code></td><td>Build/Test orchestration (export-&gt;build-&gt;test, progress events)</td></tr>
+<tr><td><code>E04</code></td><td><code>apps/studio-electron/src/main/helpService.ts</code></td><td>Help loader + search (Markdown + frontmatter)</td></tr>
+<tr><td><code>E05</code></td><td><code>apps/studio-electron/src/main/workspace.ts</code></td><td>Path sandbox (assertInWorkspace, safeJoin)</td></tr>
+<tr><td><code>E06</code></td><td><code>apps/studio-electron/src/main/__tests__/workspace.test.ts</code></td><td>Tests for workspace policy</td></tr>
+<tr><td><code>P01</code></td><td><code>apps/studio-electron/src/preload/bridge.ts</code></td><td>contextBridge: window.KidMod API + IPC</td></tr>
+<tr><td><code>U01</code></td><td><code>apps/studio-electron/src/renderer/App.tsx</code></td><td>Root component, provider composition</td></tr>
+<tr><td><code>U02</code></td><td><code>apps/studio-electron/src/renderer/ai/commander.ts</code></td><td>Local command heuristics for chat</td></tr>
+<tr><td><code>U03</code></td><td><code>apps/studio-electron/src/renderer/index.css</code></td><td>Global styles</td></tr>
+<tr><td><code>U04</code></td><td><code>apps/studio-electron/src/renderer/index.html</code></td><td>Renderer entry HTML</td></tr>
+<tr><td><code>U05</code></td><td><code>apps/studio-electron/src/renderer/index.tsx</code></td><td>React mount</td></tr>
+<tr><td><code>U06</code></td><td><code>apps/studio-electron/src/renderer/state/ProjectContext.tsx</code></td><td>App state + UI state + save/load + selection</td></tr>
+<tr><td><code>U07</code></td><td><code>apps/studio-electron/src/renderer/state/Toast.css</code></td><td>Toast styles</td></tr>
+<tr><td><code>U08</code></td><td><code>apps/studio-electron/src/renderer/state/ToastContext.tsx</code></td><td>Toast system (addToast, auto-dismiss)</td></tr>
+<tr><td><code>U09</code></td><td><code>apps/studio-electron/src/renderer/state/persistence.ts</code></td><td>Bridge wrapper + MockBridge (browser)</td></tr>
+<tr><td><code>U10</code></td><td><code>apps/studio-electron/src/renderer/types/bridge.d.ts</code></td><td>Types for window.KidMod + PipelineStatus</td></tr>
+<tr><td><code>U11</code></td><td><code>apps/studio-electron/src/renderer/ui/BuildDialog.tsx</code></td><td>UI for pipeline (start + progress + result)</td></tr>
+<tr><td><code>U12</code></td><td><code>apps/studio-electron/src/renderer/ui/CreeperAvatar.tsx</code></td><td>Avatar component</td></tr>
+<tr><td><code>U13</code></td><td><code>apps/studio-electron/src/renderer/ui/CreeperChat.tsx</code></td><td>Chat UI + help fallback</td></tr>
+<tr><td><code>U14</code></td><td><code>apps/studio-electron/src/renderer/ui/Editor.css</code></td><td>Editor styles</td></tr>
+<tr><td><code>U15</code></td><td><code>apps/studio-electron/src/renderer/ui/EditorPanel.tsx</code></td><td>Object editor (name/id/texture etc.)</td></tr>
+<tr><td><code>U16</code></td><td><code>apps/studio-electron/src/renderer/ui/Layout.css</code></td><td>Layout styles</td></tr>
+<tr><td><code>U17</code></td><td><code>apps/studio-electron/src/renderer/ui/Layout.tsx</code></td><td>Main layout (sidebar, panels, dialogs)</td></tr>
+<tr><td><code>U18</code></td><td><code>apps/studio-electron/src/renderer/ui/Library.css</code></td><td>Library styles</td></tr>
+<tr><td><code>U19</code></td><td><code>apps/studio-electron/src/renderer/ui/Library.tsx</code></td><td>Library (create/select blocks/items/recipes)</td></tr>
+<tr><td><code>U20</code></td><td><code>apps/studio-electron/src/renderer/ui/OnboardingWizard.css</code></td><td>Onboarding styles</td></tr>
+<tr><td><code>U21</code></td><td><code>apps/studio-electron/src/renderer/ui/OnboardingWizard.tsx</code></td><td>Onboarding (cloud/local + model tier download simulation)</td></tr>
+<tr><td><code>U22</code></td><td><code>apps/studio-electron/src/renderer/ui/Preview3D.tsx</code></td><td>Three.js preview (block/item preview + textures)</td></tr>
+<tr><td><code>U23</code></td><td><code>apps/studio-electron/src/renderer/ui/StatusFooter.css</code></td><td>Footer styles</td></tr>
+<tr><td><code>U24</code></td><td><code>apps/studio-electron/src/renderer/ui/StatusFooter.tsx</code></td><td>Status/Explain + toggles</td></tr>
+<tr><td><code>U25</code></td><td><code>apps/studio-electron/src/renderer/ui/VoiceControl.css</code></td><td>Voice styles</td></tr>
+<tr><td><code>U26</code></td><td><code>apps/studio-electron/src/renderer/ui/VoiceControl.tsx</code></td><td>Voice UI + CommandParser.parse + dispatch</td></tr>
+<tr><td><code>U27</code></td><td><code>apps/studio-electron/src/renderer/utils/ModelManager.ts</code></td><td>Model tier simulation (download state)</td></tr>
+<tr><td><code>U28</code></td><td><code>apps/studio-electron/src/renderer/utils/TextureGenerator.ts</code></td><td>Procedural texture generator (Canvas -&gt; DataURL)</td></tr>
+<tr><td><code>M01</code></td><td><code>packages/core-model/src/__tests__/explain.test.ts</code></td><td>Tests: explain output</td></tr>
+<tr><td><code>M02</code></td><td><code>packages/core-model/src/__tests__/parser.test.ts</code></td><td>Tests: parser rules</td></tr>
+<tr><td><code>M03</code></td><td><code>packages/core-model/src/__tests__/reducer.test.ts</code></td><td>Tests: reducer (history/undo/redo)</td></tr>
+<tr><td><code>M04</code></td><td><code>packages/core-model/src/__tests__/schema.test.ts</code></td><td>Tests: Zod schemas</td></tr>
+<tr><td><code>M05</code></td><td><code>packages/core-model/src/actions.ts</code></td><td>Action union (create/update/delete/undo/redo/load)</td></tr>
+<tr><td><code>M06</code></td><td><code>packages/core-model/src/explain.ts</code></td><td>Kid-friendly explanations for last action</td></tr>
+<tr><td><code>M07</code></td><td><code>packages/core-model/src/index.ts</code></td><td>Barrel exports</td></tr>
+<tr><td><code>M08</code></td><td><code>packages/core-model/src/parser.ts</code></td><td>CommandParser (regex, German, confidence)</td></tr>
+<tr><td><code>M09</code></td><td><code>packages/core-model/src/reducer.ts</code></td><td>rootReducer + history/undo/redo (partly placeholder)</td></tr>
+<tr><td><code>M10</code></td><td><code>packages/core-model/src/schema.ts</code></td><td>Zod schema (Project/Block/Item/Recipe) (partly placeholder)</td></tr>
+<tr><td><code>M11</code></td><td><code>packages/core-model/src/validate.ts</code></td><td>validateProject: schema + semantic checks (partly placeholder)</td></tr>
+<tr><td><code>X01</code></td><td><code>packages/exporter/src/__tests__/exporter.test.ts</code></td><td>Export tests</td></tr>
+<tr><td><code>X02</code></td><td><code>packages/exporter/src/__tests__/full_export.test.ts</code></td><td>Full export tests</td></tr>
+<tr><td><code>X03</code></td><td><code>packages/exporter/src/__tests__/runner.test.ts</code></td><td>Build runner tests</td></tr>
+<tr><td><code>X04</code></td><td><code>packages/exporter/src/builder.ts</code></td><td>runBuild: gradle wrapper detection, spawn, jar find (partly placeholder)</td></tr>
+<tr><td><code>X05</code></td><td><code>packages/exporter/src/generators/assets.ts</code></td><td>dataUriToBuffer (PNG DataURI -&gt; Buffer; fallback 1x1)</td></tr>
+<tr><td><code>X06</code></td><td><code>packages/exporter/src/generators/java.ts</code></td><td>generateRegistryClass (registries for blocks/items) (partly placeholder)</td></tr>
+<tr><td><code>X07</code></td><td><code>packages/exporter/src/generators/json.ts</code></td><td>Lang, models, blockstates, item models (partly placeholder)</td></tr>
+<tr><td><code>X08</code></td><td><code>packages/exporter/src/index.ts</code></td><td>exportProject: scaffold + generate + write + rename mixin + runBuild export (partly placeholder)</td></tr>
+<tr><td><code>F01</code></td><td><code>packages/exporter/template/build.gradle</code></td><td>Fabric Loom build template (partly placeholder)</td></tr>
+<tr><td><code>F02</code></td><td><code>packages/exporter/template/gradle.properties</code></td><td>Versions/props</td></tr>
+<tr><td><code>F03</code></td><td><code>packages/exporter/template/settings.gradle</code></td><td>Gradle settings</td></tr>
+<tr><td><code>F04</code></td><td><code>packages/exporter/template/src/main/java/com/example/TemplateMod.java</code></td><td>ModInitializer skeleton</td></tr>
+<tr><td><code>F05</code></td><td><code>packages/exporter/template/src/main/resources/fabric.mod.json</code></td><td>Fabric metadata with placeholders {{MOD_ID}}</td></tr>
+<tr><td><code>F06</code></td><td><code>packages/exporter/template/src/main/resources/mixin.json</code></td><td>Mixin config template</td></tr>
+<tr><td><code>T01</code></td><td><code>packages/testbot/src/__tests__/testbot.test.ts</code></td><td>Tests for runner/analyzer</td></tr>
+<tr><td><code>T02</code></td><td><code>packages/testbot/src/analyzer.ts</code></td><td>LogAnalyzer: success/crash heuristics (partly placeholder)</td></tr>
+<tr><td><code>T03</code></td><td><code>packages/testbot/src/index.ts</code></td><td>Barrel exports</td></tr>
+<tr><td><code>T04</code></td><td><code>packages/testbot/src/runner.ts</code></td><td>runTest: spawn gradle task, timeout, stream logs (partly placeholder)</td></tr>
+<tr><td><code>D01</code></td><td><code>packages/docs-mcp/src/index.ts</code></td><td>Stub export</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="architecture" data-section>
+      <h2>Architecture</h2>
+      <details open>
+        <summary>Process and trust boundaries</summary>
+        <p class="muted">Renderer is untrusted UI; Main owns FS and child_process. Preload exposes a minimal safe API.</p>
+        <pre><code>+------------------------------+
+| Renderer (React + Three.js)  |
+| - UI, State, Preview, Chat   |
+| - calls window.KidMod.*      |
++--------------+---------------+
+               |
+               | contextBridge API
+               v
++------------------------------+
+| Preload (bridge.ts)          |
+| - ipcRenderer.invoke/on      |
+| - exposeInMainWorld KidMod   |
++--------------+---------------+
+               |
+               | IPC channels
+               v
++------------------------------+
+| Main (Electron)              |
+| - registerIpcHandlers        |
+| - helpService (help:search)  |
+| - buildService (pipeline:*)  |
+| - workspace sandbox utils    |
++--------------+---------------+
+               |
+               | FS / child_process / temp dirs
+               v
++------------------------------+
+| Exporter + Gradle + Testbot  |
+| - scaffold Fabric template   |
+| - generate java/json/assets  |
+| - gradlew build              |
+| - gradlew runServer + parse  |
++------------------------------+</code></pre>
+      </details>
+      <details>
+        <summary>Build/Test sequence (high level)</summary>
+        <pre><code>Renderer(BuildDialog) -&gt; pipeline:start(project)
+Main(buildService) -&gt; exportProject(tempDir)
+ -&gt; runBuild(tempDir) [gradlew build]
+ -&gt; runTest(tempDir)  [gradlew runServer + analyzer]
+ -&gt; pipeline:progress events -&gt; Renderer</code></pre>
+      </details>
+    </section>
+
+    <section id="contracts" data-section>
+      <h2>Contracts</h2>
+      <details open><summary>Project JSON Spec v1</summary><pre><code># Project JSON Spec v1 (Single Source of Truth)
+
+- File: project.json
+- schemaVersion: 1
+- IDs:
+  - EntityId: ^[a-z0-9_]+$
+  - ModId:    ^[a-z][a-z0-9_]{1,63}$
+  - NamespacedRef: ^[a-z0-9_]+:[a-z0-9_/]+$
+
+Types (v1):
+- TextureSpec:
+  - preset: { source:&quot;preset&quot;, value: rock|wood|gem|metal|grass|sand }
+  - dataUri: { source:&quot;dataUri&quot;, value:&quot;data:image/png;base64,...&quot; }
+  - Recommended: persist always as dataUri.
+- BlockSpec: id, name, properties(hardness 0..50, luminance 0..15, transparent), texture
+- ItemSpec:  id, name, itemType(gem|sword|tool|food), properties(maxStackSize 1..64, attackDamage 0..50), texture
+- RecipeSpec (shaped):
+  - pattern 1..3 rows, each 1..3 chars (A-Z0-9 or space)
+  - key maps each non-space char to NamespacedRef
+  - result { item: NamespacedRef, count 1..64 }
+
+ProjectFile:
+- meta: modId, name, version required; optional author/description/createdAt/updatedAt
+- blocks/items/recipes: Record&lt;EntityId, Spec&gt;
+- Invariant: record key == value.id (or loader fixes + warning)
+
+Semantic validation:
+- regex checks
+- texture checks
+- recipe refs exist or minecraft:*
+- result exists or minecraft:*
+- recommended: no duplicate ids across blocks/items
+
+ID rename policy:
+- Option A (recommended): IDs immutable (UI id read-only), rename via copy+delete
+- Option B: explicit rename actions that update refs</code></pre></details>
+      <details><summary>IPC / Bridge Spec v1</summary><pre><code># IPC / Bridge Spec v1
+
+Principles:
+- Renderer untrusted; Main owns FS/child_process.
+- JSON-only payloads; validate + sandbox in Main.
+
+Bridge (window.KidMod):
+- selectWorkspaceDir()
+- saveProject(workspaceDir, project)
+- loadProject(workspaceDir)
+- searchHelp(query, limit?)
+- startBuildPipeline(project) -&gt; runId
+- onBuildProgress(cb) -&gt; unsubscribe
+- cancelBuildPipeline(runId) optional
+
+Envelope:
+- ok true payload OR ok false error {code,message,details?}
+
+Channels:
+- dialog:selectWorkspace
+- project:save
+- project:load
+- help:search
+- pipeline:start
+- pipeline:progress (event)
+- pipeline:cancel optional</code></pre></details>
+      <details><summary>Exporter Manifest v1</summary><pre><code># Exporter Manifest v1
+
+Goal:
+- Deterministic Fabric Loom output that builds with gradlew build.
+
+Output (outputDir):
+- gradlew + wrapper
+- build.gradle/settings.gradle/gradle.properties
+- src/main/java/&lt;packagePath&gt;/{MainClass, ModRegistry}.java
+- src/main/resources:
+  - fabric.mod.json
+  - assets/&lt;modId&gt;/{lang, blockstates, models, textures}
+
+Generated:
+- lang/en_us.json: block.&lt;modId&gt;.&lt;id&gt;, item.&lt;modId&gt;.&lt;id&gt;
+- blockstates/models per manifest
+- textures/*.png from dataUri
+- Java registry registers blocks, block items, items
+
+Build/test:
+- runBuild: gradlew build -&gt; jar in build/libs/*.jar
+- testbot: gradlew runServer -&gt; analyzer -&gt; ok/fail</code></pre></details>
+    </section>
+
+    <section id="assembly" data-section>
+      <h2>Assembly Plan Checklist</h2>
+      <pre><code># Assembly Plan Checklist (v1)
+
+Phase 0: Repo hygiene
+Phase 1: Core truth (core-model) - remove placeholders, tests green, decide ID policy
+Phase 2: Save/Load via IPC + sandbox + atomic write
+Phase 3: Exporter deterministic output + gradlew build
+Phase 4: Pipeline export/build/test + robust testbot
+Phase 5: UX + safety hardening (allowlist, clamps, onboarding)</code></pre>
+    </section>
+
+    <section id="patchplan" data-section>
+      <h2>Task Breakdown by File</h2>
+      <pre><code># Task Breakdown by File (Patch Plan v1)
+
+Core model:
+- schema.ts, validate.ts, actions.ts, reducer.ts (P0)
+- parser.ts, explain.ts (P1)
+- tests incl validate.test.ts (P0)
+
+Main/preload:
+- workspace.ts (P0)
+- ipc.ts implement save/load (P0)
+- bridge.ts allowlist (P1)
+- buildService.ts pipeline mapping (P0)
+
+Renderer:
+- bridge.d.ts types (P0)
+- persistence.ts wrap envelopes (P0)
+- ProjectContext save/load UX (P0)
+- EditorPanel ID policy (P0 if immutable)
+
+Exporter:
+- index.ts scaffold+generate (P0)
+- assets.ts/json.ts/java.ts (P0)
+- builder.ts + template wrapper (P1)
+- tests assert manifest (P0)
+
+Testbot:
+- runner.ts/analyzer.ts/tests (P0)</code></pre>
+    </section>
+
+    <section id="errors" data-section>
+      <h2>Error Catalog</h2>
+      <pre><code># Error Catalog v1
+
+Codes:
+E_BAD_REQUEST, E_WORKSPACE_REQUIRED, E_PATH_TRAVERSAL, E_NOT_FOUND, E_VALIDATION,
+E_IO, E_PIPELINE_RUNNING, E_BUILD_FAILED, E_TEST_FAILED, E_UNKNOWN
+
+UI rules:
+- Friendly message always; details optional.
+
+Mappings:
+- validateProject -&gt; E_VALIDATION
+- FS -&gt; E_IO
+- sandbox -&gt; E_PATH_TRAVERSAL
+- missing project.json -&gt; E_NOT_FOUND
+- gradle build fail -&gt; E_BUILD_FAILED
+- runServer crash/timeout -&gt; E_TEST_FAILED</code></pre>
+    </section>
+
+    <section data-section>
+      <h2>Print notes</h2>
+      <p class="muted">Use browser print. Enable background graphics if you want code block backgrounds.</p>
+    </section>
+  </div>
+</main>
+
+<script>
+(function() {
+  const q = document.getElementById('q');
+  const sections = Array.from(document.querySelectorAll('[data-section]'));
+  function norm(s) { return (s||'').toLowerCase(); }
+  function apply() {
+    const term = norm(q.value).trim();
+    if (!term) { sections.forEach(s => s.classList.remove('hidden')); return; }
+    sections.forEach(sec => {
+      const txt = norm(sec.innerText);
+      if (txt.indexOf(term) !== -1) sec.classList.remove('hidden');
+      else sec.classList.add('hidden');
+    });
+  }
+  q.addEventListener('input', apply);
+})();
+</script>
+</body>
+</html>

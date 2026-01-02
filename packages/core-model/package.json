@@ -1,0 +1,15 @@
+{
+    "name": "@kidmodstudio/core-model",
+    "version": "1.0.0",
+    "type": "module",
+    "main": "src/index.ts",
+    "scripts": {
+        "test": "vitest run"
+    },
+    "dependencies": {
+        "zod": "^3.22.0"
+    },
+    "devDependencies": {
+        "vitest": "^1.0.0"
+    }
+}

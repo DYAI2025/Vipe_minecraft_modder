@@ -311,21 +311,53 @@ async function createMod() {
     return;
   }
 
-  setCraftyMessage(CRAFTY_MESSAGES.thinking);
+  setCraftyMessage('Ich packe deinen Mod zusammen... 📦');
   setCraftyState('thinking');
-  updateStatus('llm-status', 'loading', 'Erstelle Mod...');
+  updateStatus('llm-status', 'loading', 'Exportiere Mod...');
 
-  // Simulate mod creation
-  await new Promise(resolve => setTimeout(resolve, 1500));
+  try {
+    // 1. Construct project object from current UI state
+    // For now, we take the center slot as the main block
+    const mainBlock = craftingSlots[4] || filledSlots[0];
+    const project = {
+      schemaVersion: 1,
+      meta: {
+        modId: 'kid_custom_mod',
+        name: 'Mein cooler Mod',
+        version: '1.0.0'
+      },
+      blocks: {
+        [mainBlock.id]: {
+          id: mainBlock.id,
+          name: mainBlock.name,
+          properties: { hardness: 1.5, luminance: 0, transparent: false },
+          texture: { source: 'preset', value: 'rock' } // placeholder, ideally dataUri
+        }
+      }
+    };
 
-  setCraftyMessage(CRAFTY_MESSAGES.success);
-  setCraftyState('happy');
-  updateStatus('llm-status', 'success', 'Mod erstellt!');
+    // 2. Call Exporter via IPC
+    // Using a default workspace for now
+    const workspaceDir = '/home/dyai/Dokumente/Pers.Tests-Page/social-role/DYAI_home/DEV/TOOLS/Minecraft-ModBuilder/workspace';
+    const result = await window.kidmod.exporter.run({ workspaceDir, project });
 
-  // Show result
-  const resultSlot = document.getElementById('result-slot');
-  resultSlot.textContent = '🎁';
-  resultSlot.querySelector('.slot-hint')?.remove();
+    if (result.ok) {
+      setCraftyMessage('Juhu! 🎉 Dein Mod liegt im Export-Ordner!');
+      setCraftyState('happy');
+      updateStatus('llm-status', 'success', 'Mod fertig!');
+
+      const resultSlot = document.getElementById('result-slot');
+      resultSlot.textContent = '🎁';
+      resultSlot.title = `Exportiert nach: ${result.outputDir}`;
+    } else {
+      throw new Error(result.error?.message || 'Unbekannter Fehler');
+    }
+  } catch (error) {
+    console.error('Export error:', error);
+    setCraftyMessage('Oh nein! Der Mod konnte nicht gebaut werden. 🛑');
+    setCraftyState('thinking');
+    updateStatus('llm-status', 'error', 'Export fehlgeschlagen');
+  }
 }
 
 function clearWorkbench() {
