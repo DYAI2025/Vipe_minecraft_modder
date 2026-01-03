@@ -61,6 +61,7 @@ const crafty = document.getElementById('crafty');
 const btnVoice = document.getElementById('btn-voice');
 const btnCreate = document.getElementById('btn-create');
 const btnClear = document.getElementById('btn-clear');
+const btnTexture = document.getElementById('btn-texture');
 const voiceTranscript = document.getElementById('voice-transcript');
 const llmStatus = document.getElementById('llm-status');
 const sttStatus = document.getElementById('stt-status');
@@ -319,6 +320,13 @@ async function createMod() {
     // 1. Construct project object from current UI state
     // For now, we take the center slot as the main block
     const mainBlock = craftingSlots[4] || filledSlots[0];
+
+    // Get current texture from TextureManager (if available)
+    let blockTexture = { source: 'preset', value: 'rock' }; // fallback default
+    if (textureManager) {
+      blockTexture = textureManager.getCurrentTexture();
+    }
+
     const project = {
       schemaVersion: 1,
       meta: {
@@ -331,7 +339,7 @@ async function createMod() {
           id: mainBlock.id,
           name: mainBlock.name,
           properties: { hardness: 1.5, luminance: 0, transparent: false },
-          texture: { source: 'preset', value: 'rock' } // placeholder, ideally dataUri
+          texture: blockTexture // Now uses selected texture!
         }
       }
     };
@@ -1103,6 +1111,80 @@ async function saveSettingsFromUI() {
   }
 }
 
+// ==================== TEXTURE MANAGEMENT ====================
+let textureManager = null;
+
+function setupTextureModal() {
+  const textureModal = document.getElementById('texture-modal');
+  const btnCloseTexture = document.getElementById('btn-close-texture');
+  const btnApplyTexture = document.getElementById('btn-apply-texture');
+  const btnUploadTexture = document.getElementById('btn-upload-texture');
+  const presetContainer = document.getElementById('preset-selector-container');
+  const previewCanvas = document.getElementById('texture-preview');
+
+  // Initialize TextureManager
+  if (window.TextureManager) {
+    textureManager = new window.TextureManager();
+    textureManager.init({
+      previewCanvas: previewCanvas,
+      onTextureChange: (texture) => {
+        console.log('[TextureManager] Texture changed:', texture);
+      }
+    });
+
+    // Add preset selector to container
+    if (presetContainer) {
+      const selector = textureManager.createPresetSelector();
+      presetContainer.appendChild(selector);
+    }
+  }
+
+  // Upload button
+  btnUploadTexture?.addEventListener('click', async () => {
+    try {
+      btnUploadTexture.disabled = true;
+      btnUploadTexture.textContent = '⏳ Lade hoch...';
+
+      await textureManager.uploadCustomTexture();
+
+      btnUploadTexture.disabled = false;
+      btnUploadTexture.textContent = '📤 Textur hochladen';
+      setCraftyMessage('Textur hochgeladen! 🎨');
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert('Fehler beim Hochladen: ' + error.message);
+      btnUploadTexture.disabled = false;
+      btnUploadTexture.textContent = '📤 Textur hochladen';
+    }
+  });
+
+  // Apply and close
+  btnApplyTexture?.addEventListener('click', () => {
+    textureModal.style.display = 'none';
+    const texture = textureManager.getCurrentTexture();
+    setCraftyMessage(`Textur "${texture.source === 'preset' ? textureManager.getPresetTexture(texture.value)?.name : 'Custom'}" ausgewählt! ✅`);
+  });
+
+  // Close without applying
+  btnCloseTexture?.addEventListener('click', () => {
+    textureModal.style.display = 'none';
+  });
+
+  // Click outside to close
+  textureModal?.addEventListener('click', (e) => {
+    if (e.target === textureModal) {
+      textureModal.style.display = 'none';
+    }
+  });
+}
+
+function openTextureModal() {
+  const textureModal = document.getElementById('texture-modal');
+  if (textureModal) {
+    textureModal.style.display = 'flex';
+  }
+}
+
 // ==================== INITIALISIERUNG ====================
 async function init() {
   // Setup UI
@@ -1111,6 +1193,7 @@ async function init() {
   renderInventory('blocks');
   startIdleMessages();
   setupSettings();
+  setupTextureModal();
 
   // Initialize WebSpeech TTS
   initWebSpeechTTS();
@@ -1119,6 +1202,7 @@ async function init() {
   btnVoice.addEventListener('click', toggleVoice);
   btnCreate.addEventListener('click', createMod);
   btnClear.addEventListener('click', clearWorkbench);
+  btnTexture.addEventListener('click', openTextureModal);
 
   // Initialize voice modules
   if (window.voiceController) {

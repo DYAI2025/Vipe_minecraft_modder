@@ -67,6 +67,7 @@
       </div>
       <div class="action-buttons">
         <button class="mc-button primary" id="btn-create">⚒️ Mod bauen!</button>
+        <button class="mc-button" id="btn-texture">🎨 Textur wählen</button>
         <button class="mc-button" id="btn-clear">🗑️ Leeren</button>
       </div>
     </section>
@@ -191,10 +192,43 @@
     </div>
   </div>
 
+  <!-- Texture Selection Modal -->
+  <div class="modal-overlay" id="texture-modal" style="display: none;">
+    <div class="modal-content">
+      <h2>🎨 Textur auswählen</h2>
+
+      <div class="settings-section">
+        <h3>📦 Vorlagen-Texturen</h3>
+        <div id="preset-selector-container">
+          <!-- Preset buttons werden von TextureManager erstellt -->
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3>📁 Eigene Textur hochladen</h3>
+        <p class="settings-hint">💡 Lade ein PNG oder JPEG Bild hoch (max. 1MB)</p>
+        <button class="mc-button" id="btn-upload-texture">📤 Textur hochladen</button>
+      </div>
+
+      <div class="settings-section">
+        <h3>👁️ Vorschau</h3>
+        <div style="text-align: center;">
+          <canvas id="texture-preview" style="border: 2px solid #ccc; border-radius: 4px; image-rendering: pixelated;"></canvas>
+        </div>
+      </div>
+
+      <div class="modal-buttons">
+        <button class="mc-button primary" id="btn-apply-texture">✅ Übernehmen</button>
+        <button class="mc-button" id="btn-close-texture">❌ Abbrechen</button>
+      </div>
+    </div>
+  </div>
+
   <script src="craftyBrain.js"></script>
   <script src="voiceController.js"></script>
   <script src="components/chatPanel.js"></script>
   <script src="components/webSpeechIntegration.js"></script>
+  <script src="components/textureManager.js"></script>
   <script src="voiceFeatures.js"></script>
   <script src="app.js"></script>
 </body>
